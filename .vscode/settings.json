@@ -1,0 +1,11 @@
+{
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": ".*\\.py$",
+        "isAsync": true,
+        "cmd": "workbench.action.tasks.runTask Upload to ESP32"
+      }
+    ]
+  }
+}
