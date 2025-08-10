@@ -2,7 +2,7 @@ import uasyncio as asyncio
 from gshock_api.exceptions import GShockConnectionError
 
 class CancelableResult:
-    def __init__(self, timeout=10.0):
+    def __init__(self, timeout=20.0):
         self._timeout = timeout
         self._result = None
         self._done = False

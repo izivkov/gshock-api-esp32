@@ -78,7 +78,12 @@ class MessageDispatcher:
 
     @staticmethod
     def on_received(data):
-        key = data[0:1]  # first byte
+        # First byte as int to match CHARACTERISTICS mapping keys
+        try:
+            key = data[0]
+        except TypeError:
+            # Fallback for memoryview/other buffer types
+            key = int(bytes(data)[0])
         handler = MessageDispatcher.data_received_messages.get(key)
         if handler:
             handler(data)

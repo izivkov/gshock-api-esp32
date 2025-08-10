@@ -1,97 +1,76 @@
 import uasyncio as asyncio
-from bluetooth import BLE
+import aioble
+import bluetooth
+import time
 
-_IRQ_SCAN_RESULT = 5
-_IRQ_SCAN_DONE = 6
-_IRQ_PERIPHERAL_CONNECT = 7
+def props_to_string(props: int) -> str:
+    out = []
+    if props & bluetooth.FLAG_READ:
+        out.append("READ")
+    if props & bluetooth.FLAG_WRITE:
+        out.append("WRITE")
+    if props & bluetooth.FLAG_WRITE_NO_RESPONSE:
+        out.append("WRITE_NO_RESPONSE")
+    if props & bluetooth.FLAG_NOTIFY:
+        out.append("NOTIFY")
+    if props & bluetooth.FLAG_INDICATE:
+        out.append("INDICATE")
+    # MicroPython doesn’t define BROADCAST / SIGNED_WRITE flags explicitly in aioble,
+    # but they’re in the Bluetooth spec if needed.
+    return " | ".join(out) if out else "NONE"
 
-class SimpleCentral:
-    def __init__(self):
-        self.ble = BLE()
-        self.ble.active(True)
-        def irq_handler(event, data):
-            self.bt_irq(event, data)
-        self.ble.irq(irq_handler)
+async def discover_services(conn):
+    char_map = {}
 
-        self.scan_event = asyncio.Event()
+    try:
+        # target_service_uuid = "26eb000d-b012-49a8-b1f8-394fb2032b0f"
+        target_service_uuid = bluetooth.UUID("26eb000d-b012-49a8-b1f8-394fb2032b0f")
+        target_service = None
 
-        self.connect_event = asyncio.Event()
-        self.connect_addr_type = None
-        self.connect_addr = None
-        print("BLE initialized and IRQ handler set.")
+        # First pass – discover all services and store them
+        async for service in conn.services():
+            print(f"Service: {str(service.uuid)}, {target_service_uuid}")  
+            if service.uuid == target_service_uuid:
+                print(f"Found target service: {service.uuid}")
+                target_service = service
+                # Do not break, we need to complete the service discovery,
+                # Otherwise we get "Discovery in progress" error.
+                # break
 
-    def _decode_name(self, adv_data):
-        if isinstance(adv_data, memoryview):
-            adv_data = bytes(adv_data)  # Convert to bytes
+        if target_service:
+            print(f"Service {target_service.uuid} characteristics:")
+            async for char in target_service.characteristics():
+                char_map[char.uuid] = char
 
-        i = 0
-        while i + 1 < len(adv_data):
-            length = adv_data[i]
-            if length == 0:
-                break
-            ad_type = adv_data[i + 1]
-            if ad_type == 0x09:  # Complete Local Name
-                print("Found Complete Local Name in adv_data:", adv_data)
-                try:
-                    name_bytes = adv_data[i + 2 : i + 1 + length]
-                    return name_bytes.decode('utf-8')  # Specify utf-8 explicitly
-                except Exception as e:
-                    print("Exception decoding name:", e)
-                    return None
-            i += 1 + length
+    except Exception as e:
+        print(f"Error during service discovery: {e}")
 
-        return None
-
-    def bt_irq(self, event, data):
-        if event == _IRQ_SCAN_RESULT:
-            addr_type, addr, adv_type, rssi, adv_data = data
-
-            name = self._decode_name(adv_data)
-            print(f"Scanned device: {addr_type} {addr} {adv_type} {rssi} {name}")
-
-            if name and name.upper().startswith("CASIO"):                
-                print("Found CASIO device, attempting to connect...")
-
-                # Stop scanning before connecting
-                self.ble.gap_scan(None)
-
-                try:
-                    self.ble.gap_connect(addr_type, bytes(addr))
-                    print("Connection initiated")
-                except Exception as e:
-                    print("Connection failed:", e)
-
-    async def forever_scan_and_connect(self):
-        try:
-            while True:
-                self.connect_addr = None
-                self.connect_addr_type = None
-                self.scan_event.clear()
-
-                # Scan for 5 seconds
-                self.ble.gap_scan(5000, 30000, 30000)
-
-                await self.scan_event.wait()
-                self.ble.gap_scan(None)  # Stop scanning (defensive: stop scan after match)
-
-                if self.connect_addr:
-                    print("Attempting to connect...")
-                    self.ble.gap_connect(self.connect_addr_type, self.connect_addr)
-                    # Wait a bit for connect; in real use, track disconnect event as well.
-                    await asyncio.sleep(10)
-                    print("Disconnecting and restarting scan.")
-                    # Add BLE disconnect code here if you want to formally disconnect each time.
-                    await asyncio.sleep(1)
-                else:
-                    print("No matching device found, will retry.")
-                    await asyncio.sleep(1)
-
-        except Exception as e:
-            print("Exception in forever_scan_and_connect:", e)
-            raise
+    return char_map
 
 async def main():
-    central = SimpleCentral()
-    asyncio.create_task(central.forever_scan_and_connect())  # start the scan task
-    await asyncio.sleep(10)  # or some other logic
+    print("Scanning for CASIO device...")
 
+    device = None
+    while device is None:
+        async with aioble.scan(duration_ms=5000) as scanner:
+            async for result in scanner:
+                name = result.name() or "Unknown"
+                print(f"Found: {result.device.addr_hex()}  Name: {name}")
+                if name.upper().startswith("CASIO"):
+                    device = result.device
+                    break
+        if device is None:
+            print("No CASIO device found, scanning again...")
+
+    print(f"Connecting to device: {device.addr_hex()}")
+
+    conn = await device.connect()
+    try:
+        print("Connected. Discovering services...")
+        services = await discover_services(conn)
+        print(f"Discovered {len(services)} services")
+    finally:
+        await conn.disconnect()
+        print("Disconnected.")
+
+asyncio.run(main())

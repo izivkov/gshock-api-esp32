@@ -45,8 +45,12 @@ async def run_time_server():
         try:
             logger.info(f"Waiting for connection...")
             connection = Connection()
-            await connection.connect(excluded_watches)
-            logger.info(f"Connected...")
+            connected = await connection.connect(excluded_watches)
+            if not connected:
+                logger.info("Connect attempt failed; retrying...")
+                await asyncio.sleep(1)
+                continue
+            logger.info("Connected...")
 
             api = GshockAPI(connection)
             pressed_button = await api.get_pressed_button()
@@ -57,7 +61,10 @@ async def run_time_server():
             ):
                 continue
 
+            logger.info(f"Pressed button: {pressed_button}")
+
             watch_name = await api.get_watch_name()
+            logger.info(f"Watch name: {watch_name}")
 
             # Apply fine adjustment to the time
             fine_adjustment_secs = args.get().fine_adjustment_secs
