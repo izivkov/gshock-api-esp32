@@ -161,7 +161,7 @@ class AppNotificationIO:
         header = "000000000001"
         result = bytearray()
         result += bytes.fromhex(header)
-        result.append(data.type.value)
+        result.append(data.type)
         result += data.timestamp.encode("ascii")
         result += AppNotificationIO.write_length_prefixed_string(data.app)
         result += AppNotificationIO.write_length_prefixed_string(data.title)

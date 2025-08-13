@@ -15,7 +15,7 @@ class WatchButton:
     FIND = 7
 
 class ButtonPressedIO:
-    result = None
+    result: CancelableResult = None
     connection = None
 
     @staticmethod
@@ -41,8 +41,8 @@ class ButtonPressedIO:
             """
             RIGHT BUTTON: 0x10 17 62 07 38 85 CD 7F ->04<- 03 0F FF FF FF FF 24 00 00 00
             LEFT BUTTON:  0x10 17 62 07 38 85 CD 7F ->01<- 03 0F FF FF FF FF 24 00 00 00
-            RESET:        0x10 17 62 16 05 85 dd 7f ->00<- 03 0f ff ff ff ff 24 00 00 00
-            AUTO-TIME:    0x10 17 62 16 05 85 dd 7f ->03<- 03 0f ff ff ff ff 24 00 00 00
+            RESET:        0x10 17 62 16 05 85 dd 7f ->00<- 03 0f ff ff ff ff 24 00 00 00 // after watch reset
+            AUTO-TIME:    0x10 17 62 16 05 85 dd 7f ->03<- 03 0f ff ff ff ff 24 00 00 00 // no button pressed
             """
 
             ret = WatchButton.INVALID
@@ -50,20 +50,20 @@ class ButtonPressedIO:
             if len(data) >= 19:
                 ble_int_arr = to_int_array(to_hex_string(data))
                 button_indicator = ble_int_arr[8]
-                if button_indicator == 0 or button_indicator == 1:
-                    ret = WatchButton.LOWER_LEFT
-                elif button_indicator == 4:
-                    ret = WatchButton.LOWER_RIGHT
-                elif button_indicator == 3:
-                    ret = WatchButton.NO_BUTTON
-                elif button_indicator == 2:
-                    ret = WatchButton.FIND
-                else:
-                    # Default fallback for unknown button values
-                    ret = WatchButton.LOWER_RIGHT
+                ret = (
+                    WatchButton.LOWER_LEFT
+                    if (button_indicator == 0 or button_indicator == 1)
+                    else WatchButton.LOWER_RIGHT
+                    if button_indicator == 4
+                    else WatchButton.NO_BUTTON
+                    if button_indicator == 3
+                    else WatchButton.FIND
+                    if button_indicator == 2
+                    # assime that all other buttons from watches such as the ECB-30 are for time set
+                    else WatchButton.LOWER_RIGHT
+                )
 
             return ret
 
         button = button_pressed_callback(data)
-        if ButtonPressedIO.result:
-            ButtonPressedIO.result.set_result(button)
+        ButtonPressedIO.result.set_result(button)

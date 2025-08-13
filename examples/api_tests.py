@@ -81,11 +81,18 @@ async def run_api_tests(argv):
         utc_timestamp = time.time()
         event_date = create_event_date(utc_timestamp, None)  # Pass None or minimal tz support
         event_date_str = json.dumps(event_date.__dict__)
-        event_json_str = (
-            '{"title":"Test Event", "time":{"selected":false, "enabled":true, "repeat_period":'+
-            str(RepeatPeriod.WEEKLY) +
-            ', "days_of_week":"MONDAY", "start_date":' + event_date_str + ', "end_date":' + event_date_str + '}}'
-        )
+        event_data = {
+            "title": "Test Event",
+            "time": {
+                "selected": False,
+                "enabled": True,
+                "repeat_period": RepeatPeriod.WEEKLY,
+                "days_of_week": "MONDAY",
+                "start_date": event_date_str,
+                "end_date": event_date_str
+            }
+        }
+        event_json_str = json.dumps(event_data)
         Event().create_event(json.loads(event_json_str))
         print("Created event:", event_json_str)
 
@@ -106,11 +113,11 @@ async def run_api_tests(argv):
 
 async def app_notifications(api):
     calendar_notification = AppNotification(
-        type=NotificationType.CALENDAR,
-        timestamp="20231001T121000",
-        app="Calendar",
-        title="This is a very long Meeting with Team",
-        text="9:20 - 10:15 AM"
+        NotificationType.CALENDAR,
+        "20231001T121000",
+        "Calendar",
+        "This is a very long Meeting with Team",
+        "9:20 - 10:15 AM"
     )
     await api.send_app_notification(calendar_notification)
     # Add other notifications similarly if needed

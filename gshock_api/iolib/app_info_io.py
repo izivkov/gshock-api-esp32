@@ -7,7 +7,7 @@ from gshock_api.casio_constants import CasioConstants
 CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 
 class AppInfoIO:
-    result = None
+    result: CancelableResult = None
     connection = None
 
     @staticmethod
@@ -19,16 +19,22 @@ class AppInfoIO:
 
     @staticmethod
     async def send_to_watch(connection):
-        await connection.write(0x000C, bytearray([CHARACTERISTICS["CASIO_APP_INFORMATION"]]))
+        connection.write(0x000C, bytearray([CHARACTERISTICS["CASIO_APP_INFORMATION"]]))
 
     @staticmethod
     def on_received(data):
-        def set_app_info(data_str):
-            # App info packet to restore D button functionality after reset.
-            compact = to_compact_string(data_str)
-            if compact == "22FFFFFFFFFFFFFFFFFFFF00":
+        def set_app_info(data: str):
+            # App info:
+            # This is needed to re-enable button D (Lower-right) after the watch has been reset or BLE has been cleared.
+            # It is a hard-coded value, which is what the official app does as well.
+
+            # If watch was reset, the app info will come as:
+            # 0x22 FF FF FF FF FF FF FF FF FF FF 00
+            # In this case, set it to the hardcoded value bellow, so 'D' button will
+            # work again.
+            app_info_compact_str = to_compact_string(data)
+            if app_info_compact_str == "22FFFFFFFFFFFFFFFFFFFF00":
                 AppInfoIO.connection.write(0xE, "223488F4E5D5AFC829E06D02")
 
         set_app_info(to_hex_string(data))
-        if AppInfoIO.result:
-            AppInfoIO.result.set_result("OK")
+        AppInfoIO.result.set_result("OK")

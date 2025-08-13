@@ -4,23 +4,23 @@ from gshock_api.cancelable_result import CancelableResult
 CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 
 class WorldCitiesIO:
-    result = None
+    result: CancelableResult = None
     connection = None
 
-    def __init__(self):
-        pass
-
-    def request(self, connection, city_number):
+    @staticmethod
+    async def request(connection, cityNumber: int):
         WorldCitiesIO.connection = connection
-        key = "1f0{}".format(city_number)
+        key = "1f0{}".format(cityNumber)
 
-        connection.request(key)
+        await connection.request(key)
+
         WorldCitiesIO.result = CancelableResult()
         return WorldCitiesIO.result.get_result()
 
-    def send_to_watch(self, connection):
+    @staticmethod
+    async def send_to_watch(connection):
         connection.write(0x000C, bytearray([CHARACTERISTICS["CASIO_WORLD_CITIES"]]))
 
-    def on_received(self, data):
-        if WorldCitiesIO.result:
-            WorldCitiesIO.result.set_result(data)
+    @staticmethod
+    def on_received(data):
+        WorldCitiesIO.result.set_result(data)

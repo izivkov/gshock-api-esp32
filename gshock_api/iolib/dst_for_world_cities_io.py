@@ -7,17 +7,17 @@ from gshock_api.casio_constants import CasioConstants
 CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 
 class DstForWorldCitiesIO:
-    result = None
+    result: CancelableResult = None
     connection = None
 
     @staticmethod
-    async def request(connection, city_number):
+    async def request(connection, city_number: int):
         DstForWorldCitiesIO.connection = connection
         key = "1e0{}".format(city_number)
         await connection.request(key)
 
         DstForWorldCitiesIO.result = CancelableResult()
-        return await DstForWorldCitiesIO.result.get_result()
+        return DstForWorldCitiesIO.result.get_result()
 
     @staticmethod
     async def send_to_watch(connection):

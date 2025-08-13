@@ -11,7 +11,7 @@ CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 
 
 class TimeAdjustmentIO:
-    result = None
+    result: CancelableResult = None
     connection = None
     original_value = None
 
@@ -22,6 +22,7 @@ class TimeAdjustmentIO:
 
         TimeAdjustmentIO.result = CancelableResult()
         return TimeAdjustmentIO.result.get_result()
+
 
     @staticmethod
     def send_to_watch(message):
@@ -36,15 +37,18 @@ class TimeAdjustmentIO:
             await ErrorIO.request("Error: Must call get before set")
             return
 
-        # Parse JSON once
-        data = json.loads(message)
-        time_adjustment = data.get("timeAdjustment") == "True"
-        minutes_after_hour = int(data.get("minutesAfterHour", 0))
+        if TimeAdjustmentIO.original_value == None:
+            return ErrorIO.request("Error: Must call get before set")
+
+        time_adjustment = json.loads(message).get("timeAdjustment") == "True"
+        minutes_after_hour = int(json.loads(message).get("minutesAfterHour"))
 
         def encode_time_adjustment(time_adjustment, minutes_after_hour):
-            int_array = to_int_array(TimeAdjustmentIO.original_value)
-            int_array[12] = 0x00 if time_adjustment else 0x80
-            int_array[13] = minutes_after_hour
+            raw_string = TimeAdjustmentIO.original_value
+            "0x11 0F 0F 0F 06 00 00 00 00 00 01 00 80 30 30"
+            int_array = to_int_array(raw_string)
+            int_array[12] = 0x80 if time_adjustment == False else 0x00
+            int_array[13] = int(minutes_after_hour)
             return bytes(int_array)
 
         encoded = encode_time_adjustment(time_adjustment, minutes_after_hour)
@@ -54,24 +58,31 @@ class TimeAdjustmentIO:
 
     @staticmethod
     def on_received(message):
-        TimeAdjustmentIO.original_value = to_hex_string(message)
+        TimeAdjustmentIO.original_value = to_hex_string(
+            message
+        )  # save original message
 
-        def is_time_adjustment_set(data):
-            return data[12] == 0x00
+        def is_time_adjustment_set(data) -> bool:
+            # syncing off: 110f0f0f0600500004000100->80<-10d2
+            # syncing on:  110f0f0f0600500004000100->00<-10d2
 
-        def get_minutes_after_hour(data):
-            return data[13]
+            # CasioIsAutoTimeOriginalValue.value = data  # save original data for future use
+            return int(data[12]) == 0x00
 
-        time_adjusted = is_time_adjustment_set(message)
-        minutes_after_hour = get_minutes_after_hour(message)
+        def get_minutes_after_hour(data) -> int:
+            # syncing off: 110f0f0f060050000400010080->10<-d2
 
-        result_dict = {
-            "timeAdjustment": str(time_adjusted),
-            "minutesAfterHour": str(minutes_after_hour)
-        }
+            # CasioIsAutoTimeOriginalValue.value = data  # save original data for future use
+            return int(data[13])
 
-        TimeAdjustmentIO.result.set_result(result_dict)
+        timeAdjusted = is_time_adjustment_set(message)
+        munutesAfterHour = get_minutes_after_hour(message)
+        valueToSetStr = f"""{{"timeAdjusment": "{timeAdjusted}",
+            "minutesAfterHour": "{munutesAfterHour}" }}"""
+
+        value = json.loads(valueToSetStr)
+        TimeAdjustmentIO.result.set_result(value)
 
     @staticmethod
     async def on_received_set(message):
-        logger.info("TimeAdjustmentIO onReceivedSet: {}".format(message))
+        logger.info(f"TimeAdjustmentIO onReceivedSet: {message}")

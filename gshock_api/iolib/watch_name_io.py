@@ -3,15 +3,17 @@ from gshock_api.utils import clean_str, to_ascii_string, to_hex_string
 
 from gshock_api.cancelable_result import CancelableResult
 
+
 class WatchNameIO:
-    result = None
+    result: CancelableResult = None
     connection = None
 
     @staticmethod
-    def request(connection):
+    async def request(connection):
         WatchNameIO.connection = connection
+        await connection.request("23")
+
         WatchNameIO.result = CancelableResult()
-        connection.request("23")  # Assuming this is non-blocking and triggers on_received later
         return WatchNameIO.result.get_result()
 
     @staticmethod
@@ -19,9 +21,8 @@ class WatchNameIO:
         hex_str = to_hex_string(data)
         ascii_str = to_ascii_string(hex_str, 1)
         clean_data = clean_str(ascii_str)
-        if WatchNameIO.result:
-            WatchNameIO.result.set_result(clean_data)
+        WatchNameIO.result.set_result(clean_data)
 
     @staticmethod
-    def send_to_watch():
-        pass  # Implement as needed
+    async def send_to_watch():
+        pass

@@ -15,8 +15,8 @@ class WATCH_MODEL:
     OCW = 12
     GB = 13
     GM = 14
+    ABL = 15
     UNKNOWN = 20
-
 
 class WatchInfo:
     def __init__(self):
@@ -44,6 +44,7 @@ class WatchInfo:
         self.hasPowerSavingMode = True
         self.hasDnD = False
         self.hasBatteryLevel = False
+        self.hasWorldCities = True
 
         # Model capability definitions (deduplicated)
         self.models = [
@@ -86,10 +87,11 @@ class WatchInfo:
                 "worldCitiesCount": 2,
                 "dstCount": 1,
                 "alarmCount": 5,
-                "hasAutoLight": True,
-                "hasReminders": True,
+                "hasAutoLight": False,
+                "hasReminders": False,
                 "shortLightDuration": "1.5s",
                 "longLightDuration": "3s",
+                "hasWorldCities": False
             },
             {
                 "model": WATCH_MODEL.GA,
@@ -100,6 +102,17 @@ class WatchInfo:
                 "hasReminders": True,
                 "shortLightDuration": "1.5s",
                 "longLightDuration": "3s",
+            },
+            {
+                "model": WATCH_MODEL.ABL,
+                "worldCitiesCount": 2,
+                "dstCount": 1,
+                "alarmCount": 5,
+                "hasAutoLight": False,
+                "hasReminders": False,
+                "shortLightDuration": "1.5s",
+                "longLightDuration": "3s",
+                "hasWorldCities": False
             },
             {
                 "model": WATCH_MODEL.GB001,
@@ -169,7 +182,7 @@ class WatchInfo:
                 "alwaysConnected": True,
                 "findButtonUserDefined": True,
                 "hasPowerSavingMode": False,
-                "hasDnD": True,
+                "hasDnD": True
             },
             {
                 "model": WATCH_MODEL.UNKNOWN,
@@ -184,9 +197,7 @@ class WatchInfo:
         ]
 
         # Build model→info lookup
-        self.model_map = {}
-        for entry in self.models:
-            self.model_map[entry["model"]] = entry
+        self.model_map = {entry["model"]: entry for entry in self.models}
 
     def set_name_and_model(self, name):
         self.name = name
@@ -200,24 +211,30 @@ class WatchInfo:
         if not self.shortName:
             return
 
+        logger.info(f"Setting watch model based on short name: {self.shortName}")
+        
         # Special case: exact match for ECB models
-        if self.shortName in ("ECB-10", "ECB-20", "ECB-30"):
+        if self.shortName in {"ECB-10", "ECB-20", "ECB-30"}:
             self.model = WATCH_MODEL.ECB
+        elif self.shortName.startswith("ABL"): # ABL-100WE
+            self.model = WATCH_MODEL.ABL
+        elif self.shortName.startswith("GST"): # GST-B100
+            self.model = WATCH_MODEL.GST
         else:
+            # Ordered prefix-to-model mapping (longer prefixes first)
             prefix_map = [
                 ("MSG", WATCH_MODEL.MSG),
                 ("GPR", WATCH_MODEL.GPR),
                 ("GBM", WATCH_MODEL.GA),
-                ("GST", WATCH_MODEL.GST),
                 ("GBD", WATCH_MODEL.GBD),
                 ("GMW", WATCH_MODEL.GMW),
-                ("DW", WATCH_MODEL.DW),
-                ("GA", WATCH_MODEL.GA),
-                ("GB", WATCH_MODEL.GB),
-                ("GM", WATCH_MODEL.GM),
-                ("GW", WATCH_MODEL.GW),
+                ("DW",  WATCH_MODEL.DW),
+                ("GA",  WATCH_MODEL.GA),
+                ("GB",  WATCH_MODEL.GB),
+                ("GM",  WATCH_MODEL.GM),
+                ("GW",  WATCH_MODEL.GW),
                 ("MRG", WATCH_MODEL.MRG),
-                ("GMW", WATCH_MODEL.GMW),
+                ("ABL", WATCH_MODEL.ABL),
             ]
 
             for prefix, model in prefix_map:
@@ -229,23 +246,25 @@ class WatchInfo:
         if not model_info:
             return
 
-        self.hasReminders = model_info.get("hasReminders", False)
-        self.hasAutoLight = model_info.get("hasAutoLight", False)
-        self.alarmCount = model_info.get("alarmCount", 0)
-        self.worldCitiesCount = model_info.get("worldCitiesCount", 0)
-        self.dstCount = model_info.get("dstCount", 0)
-        self.shortLightDuration = model_info.get("shortLightDuration", "")
-        self.longLightDuration = model_info.get("longLightDuration", "")
+        # Set attributes with defaults
+        self.hasReminders          = model_info.get("hasReminders", False)
+        self.hasAutoLight          = model_info.get("hasAutoLight", False)
+        self.alarmCount            = model_info.get("alarmCount", 0)
+        self.worldCitiesCount      = model_info.get("worldCitiesCount", 0)
+        self.dstCount              = model_info.get("dstCount", 0)
+        self.shortLightDuration    = model_info.get("shortLightDuration", 0)
+        self.longLightDuration     = model_info.get("longLightDuration", 0)
         self.weekLanguageSupported = model_info.get("weekLanguageSupported", True)
-        self.worldCities = model_info.get("worldCities", True)
-        self.temperature = model_info.get("temperature", True)
-        self.batteryLevelLowerLimit = model_info.get("batteryLevelLowerLimit", 15)
-        self.batteryLevelUpperLimit = model_info.get("batteryLevelUpperLimit", 20)
-        self.alwaysConnected = model_info.get("alwaysConnected", False)
+        self.worldCities           = model_info.get("worldCities", True)
+        self.temperature           = model_info.get("temperature", True)
+        self.batteryLevelLowerLimit= model_info.get("batteryLevelLowerLimit", 15)
+        self.batteryLevelUpperLimit= model_info.get("batteryLevelUpperLimit", 20)
+        self.alwaysConnected       = model_info.get("alwaysConnected", False)
         self.findButtonUserDefined = model_info.get("findButtonUserDefined", False)
-        self.hasPowerSavingMode = model_info.get("hasPowerSavingMode", False)
-        self.hasDnD = model_info.get("hasDnD", False)
-        self.hasBatteryLevel = model_info.get("hasBatteryLevel", False)
+        self.hasPowerSavingMode    = model_info.get("hasPowerSavingMode", False)
+        self.hasDnD                = model_info.get("hasDnD", False)
+        self.hasBatteryLevel       = model_info.get("hasBatteryLevel", False)
+        self.hasWorldCities        = model_info.get("hasWorldCities", True)
 
     def set_address(self, address):
         self.address = address

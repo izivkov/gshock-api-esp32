@@ -9,14 +9,18 @@ class NotificationType:
     EMAIL_SMS = 6
 
 class AppNotification:
-    def __init__(self, type_, timestamp, app, title, text, short_text=""):
-        self.type = type_
-        self.timestamp = timestamp
-        self.app = app
-        self.title = title
-        self.text = text
-        self.short_text = short_text
+    
+    def __init__(self, type, timestamp, app, title, text, short_text=""):
+            self.type = type
+            self.timestamp = timestamp
+            self.app = app
+            self.title = title
+            self.text = text
+            self.short_text = short_text
+            self.__post_init__()
 
+
+    def __post_init__(self):
         max_length_text = 193
         max_length_short_text = 40
         max_combined = 206  # Example combined max in bytes
@@ -24,11 +28,11 @@ class AppNotification:
         # Truncate individual fields by UTF-8 byte length
         text_bytes = self.text.encode("utf-8")
         if len(text_bytes) > max_length_text:
-            self.text = text_bytes[:max_length_text].decode("utf-8", "ignore")
+            self.text = text_bytes[:max_length_text].decode("utf-8", errors="ignore")
 
         short_text_bytes = self.short_text.encode("utf-8")
         if len(short_text_bytes) > max_length_short_text:
-            self.short_text = short_text_bytes[:max_length_short_text].decode("utf-8", "ignore")
+            self.short_text = short_text_bytes[:max_length_short_text].decode("utf-8", errors="ignore")
 
         # Now check combined UTF-8 byte length
         text_bytes = self.text.encode("utf-8")
@@ -37,9 +41,9 @@ class AppNotification:
         if total_len > max_combined:
             # Only shorten text, not short_text
             allowed_text_bytes = max(0, max_combined - len(short_text_bytes))
-            self.text = text_bytes[:allowed_text_bytes].decode("utf-8", "ignore")
+            self.text = text_bytes[:allowed_text_bytes].decode("utf-8", errors="ignore")
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "type": self.type,
             "timestamp": self.timestamp,
@@ -48,7 +52,4 @@ class AppNotification:
             "text": self.text,
             "short_text": self.short_text,
         }
-
-# Usage example
-# notif = AppNotification(NotificationType.MESSAGE, "2023-06-10", "WhatsApp", "Title", "Some long text...", "Short.")
-# print(notif.to_dict())
+    

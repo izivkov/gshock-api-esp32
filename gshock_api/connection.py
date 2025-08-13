@@ -3,10 +3,12 @@ import aioble
 import bluetooth
 from bluetooth import UUID
 from gshock_api.casio_constants import CasioConstants
-from gshock_api import message_dispatcher
 from gshock_api.exceptions import GShockIgnorableException, GShockConnectionError
 from gshock_api.logger import logger
-from gshock_api.utils import to_casio_cmd
+from gshock_api.utils import to_casio_cmd, to_hex_string
+from gshock_api.watch_info import watch_info
+from gshock_api.data_listener import data_listener
+from gshock_api import message_dispatcher
 
 class Connection:
     def __init__(self, address=None):
@@ -15,122 +17,119 @@ class Connection:
         self.client = None
         self.handles_map = self.init_handles_map()
         self.characteristics_map = {}
-        # Serialize discovery to avoid 'Discovery in progress' races
         self._discovery_lock = asyncio.Lock()
         self._discovered = False
 
-
     async def connect(self, excluded_watches=[]) -> bool:
-        
-        try:
-            found = None
-            async with aioble.scan(5000) as scanner:
-                async for adv in scanner:
-                    name = adv.name() or ""
-                    print(f"---> adv: {adv}, name: {name}")
-                    if name.upper().startswith("CASIO"):
-                        found = adv.device
-                        break
 
-            if not found:
-                print(f"---> not found")
+        def _format_addr(addr_bytes):
+            """Convert BLE address bytes to string format."""
+            return ':'.join(f"{b:02X}" for b in addr_bytes)
+
+        def _is_target_device(adv, excluded_watches):
+            """Return True if advertisement matches CASIO and is not excluded."""
+            name = (adv.name() or "").upper()
+            if not name.startswith("CASIO"):
                 return False
 
-            self.device = found
-            # self.address = ':'.join(f"{b:02X}" for b in found.addr)
-            self.client = await found.connect()
-
-            await self.init_characteristics_map()
+            if adv.device:
+                addr_str = _format_addr(adv.device.addr)
+                if addr_str in excluded_watches:
+                    return False
 
             return True
-        except Exception:
+
+        try:
+            found = None
+            while not found:
+                async with aioble.scan(5000) as scanner:
+                    async for adv in scanner:
+                        if _is_target_device(adv, excluded_watches):
+                            print("Found CASIO device:", adv.name(),
+                                "at", _format_addr(adv.device.addr))
+                            
+                            watch_info.set_name_and_model(adv.name()) 
+                            
+                            found = adv.device
+                            break
+
+                if not found:
+                    await asyncio.sleep(1)  # Delay between scans
+
+            self.device = found
+            self.client = await found.connect()
+
+            service = await self.client.service(bluetooth.UUID(CasioConstants.CASIO_MAIN_SERVICE_UUID))
+
+            # Subscribe only to the known notifiable characteristics
+            for char_uuid in CasioConstants.CASIO_NOTIFY_CHARACTERISTICS:
+                char = await service.characteristic(bluetooth.UUID(char_uuid))
+                await data_listener.subscribe(char)
+
+            await self.init_characteristics_map()
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to connect to CASIO device: {e}")
             return False
 
     async def discover_services(self, conn):
-        print(f"---> discover_services called")
         char_map = {}
-
         try:
-            # target_service_uuid = "26eb000d-b012-49a8-b1f8-394fb2032b0f"
-            target_service_uuid = bluetooth.UUID("26eb000d-b012-49a8-b1f8-394fb2032b0f")
+            target_uuid = bluetooth.UUID(CasioConstants.CASIO_MAIN_SERVICE_UUID)
             target_service = None
 
-            # First pass – discover all services and store them
             async for service in conn.services():
-                print(f"Service: {str(service.uuid)}, {target_service_uuid}")  
-                if service.uuid == target_service_uuid:
-                    print(f"Found target service: {service.uuid}")
+                if service.uuid == target_uuid:
                     target_service = service
-                    # Do not break, we need to complete the service discovery,
-                    # Otherwise we get "Discovery in progress" error.
-                    # break
+                    # Can't break — discovery must complete
 
             if target_service:
-                print(f"Service {target_service.uuid} characteristics:")
                 async for char in target_service.characteristics():
+                    logger.info(f"Discovered characteristic: {char.uuid}")
                     char_map[char.uuid] = char
-
         except Exception as e:
-            print(f"Error during service discovery: {e}")
-
-        print(f"---> discover_services returning char_map: {char_map}")
+            logger.error(f"Error during service discovery: {e}")
         return char_map
 
     async def init_characteristics_map(self):
-        print(f"---> init_characteristics_map called")
         self.characteristics_map = await self.discover_services(self.client)
-        print(f"---> init_characteristics_map END")
-
-    async def smart_write(self, char, data):
-        WRITE = 0x08
-        WRITE_NO_RESPONSE = 0x04
-
-        if (char.properties & WRITE) != 0:
-            response = True
-        elif (char.properties & WRITE_NO_RESPONSE) != 0:
-            response = False
-        else:
-            raise RuntimeError("Characteristic does not support write")
-
-        await char.write(data, response=response)
 
     async def write(self, handle, data):
         try:
             uuid = self.handles_map.get(handle)
-            print(f"---> write called with handle: {handle}, data: {data}, uuid: {uuid}")
 
             if UUID(uuid) not in self.characteristics_map:
-                logger.info("write failed: handle {} not in characteristics map".format(handle))
+                logger.info(f"write failed: handle {handle} not in characteristics map")
                 if handle == 13:
                     logger.info("Your watch does not support notifications...")
                 return
 
-            print(f"---> write: found uuid {uuid} in characteristics map")
-            entry = self.characteristics_map[UUID(uuid)]
-            print(f"---> write: entry: {entry}")
-            if isinstance(entry, str):
-                print(f"---> write: entry is a string, resolving characteristic for uuid: {uuid}")
+            char = self.characteristics_map[UUID(uuid)]
 
-                char = await self._resolve_char(uuid)
-                if not char:
-                    logger.info("Characteristic not found for UUID {}".format(uuid))
-                    return
-            else:
-                char = entry
+            payload = to_casio_cmd(data)
+            responseType = True if handle == 0x0E else False
 
-            if self.client is None or (hasattr(self.client, "is_connected") and not self.client.is_connected()):
-                logger.info("Not connected")
-                return
+            asyncio.sleep(0.1)  # Allow time for any previous writes to complete
 
-            payload = to_casio_cmd(data) if isinstance(data, str) else data
-            print(f"---> Writing to characteristic {char.uuid}: {payload}, data: {data}")
-            await self.smart_write(char, payload)
-            print(f"Write completed.")
+            logger.info(f"Sending data to watch: {to_hex_string(payload)} on handle {handle} ({uuid}, {payload[0]})")
+            await char.write(payload, response=responseType, timeout_ms=4000)
+            logger.info(f"Data sent successfully to watch on handle {handle} ({uuid})")
+            await data_listener.smart_subscribe(char, responseType)
 
         except OSError as err:
+            logger.error(f"OSError sending data to watch: {err}")
             raise GShockIgnorableException(err)
         except Exception as e:
-            raise GShockConnectionError("Unable to send data to watch: {}".format(e))
+            logger.error(f"Exception: {e!r}")
+            
+            # Get exception type
+            logger.error(f"Type: {type(e).__name__}")
+
+            # Get full traceback (MicroPython-compatible)
+            import sys
+            sys.print_exception(e)            
+            # raise GShockConnectionError(f"Unable to send data to watch: {e}")            
 
     async def disconnect(self):
         if self.client is None:

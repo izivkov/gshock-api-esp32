@@ -8,11 +8,11 @@ CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 
 
 class WatchConditionIO:
-    result = None
+    result: CancelableResult = None
     connection = None
 
     class WatchConditionValue:
-        def __init__(self, battery_level_percent, temperature):
+        def __init__(self, battery_level_percent: int, temperature: int):
             self.battery_level_percent = battery_level_percent
             self.temperature = temperature
 
@@ -26,16 +26,12 @@ class WatchConditionIO:
 
     @staticmethod
     async def send_to_watch(connection):
-        # assumed async write; if sync, remove await
-        await connection.write(
-            0x000C, bytearray([CHARACTERISTICS["CASIO_WATCH_CONDITION"]])
-        )
+        connection.write(0x000C, bytearray([CHARACTERISTICS["CASIO_WATCH_CONDITION"]]))
 
     @staticmethod
     def on_received(data):
-        def decode_value(data):
-            # data is expected to be list or bytes of ints
-            int_arr = list(data)
+        def decode_value(data: str) -> WatchConditionIO.WatchConditionValue:
+            int_arr = list(map(int, data))
             bytes_data = bytes(int_arr[1:])
 
             if len(bytes_data) >= 2:
@@ -45,9 +41,9 @@ class WatchConditionIO:
                 multiplier = round(
                     100.0 / (battery_level_upper_limit - battery_level_lower_limit)
                 )
-                battery_level = bytes_data[0] - battery_level_lower_limit
+                battery_level = int(bytes_data[0]) - battery_level_lower_limit
                 battery_level_percent = min(max(battery_level * multiplier, 0), 100)
-                temperature = bytes_data[1]
+                temperature = int(bytes_data[1])
 
                 return WatchConditionIO.WatchConditionValue(
                     battery_level_percent, temperature

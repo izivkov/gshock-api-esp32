@@ -12,17 +12,18 @@ class DtsState:
     FOUR = 4
 
 class DstWatchStateIO:
-    result = None
+    result: CancelableResult = None
     connection = None
 
     @staticmethod
-    async def request(connection, state):
+    async def request(connection, state: DtsState):
         DstWatchStateIO.connection = connection
-        key = "1d0{}".format(state) 
+        key = f"1d0{state}"
         await connection.request(key)
 
         DstWatchStateIO.result = CancelableResult()
-        return await DstWatchStateIO.result.get_result()
+        return DstWatchStateIO.result.get_result()
+
 
     @staticmethod
     async def send_to_watch(connection):
@@ -30,6 +31,4 @@ class DstWatchStateIO:
 
     @staticmethod
     def on_received(data):
-        if DstWatchStateIO.result:
-            DstWatchStateIO.result.set_result(data)
-
+        DstWatchStateIO.result.set_result(data)

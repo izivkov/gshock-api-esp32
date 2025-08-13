@@ -18,6 +18,7 @@ from gshock_api.iolib.watch_condition_io import WatchConditionIO
 from gshock_api.iolib.error_io import ErrorIO
 from gshock_api.iolib.unknown_io import UnknownIO
 from gshock_api.iolib.button_pressed_io import ButtonPressedIO
+from gshock_api.utils import to_hex_string
 
 CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 
@@ -52,50 +53,32 @@ class MessageDispatcher:
         CHARACTERISTICS["CASIO_SETTING_FOR_BLE"]: TimeAdjustmentIO.on_received,
         CHARACTERISTICS["ERROR"]: ErrorIO.on_received,
         CHARACTERISTICS["UNKNOWN"]: UnknownIO.on_received,
+
+        #  ECB-30
         CHARACTERISTICS["CMD_SET_TIMEMODE"]: UnknownIO.on_received,
         CHARACTERISTICS["FIND_PHONE"]: UnknownIO.on_received,
     }
 
     @staticmethod
     async def send_to_watch(message):
-        try:
-            if isinstance(message, str):
-                json_message = json.loads(message)
-            else:
-                json_message = message
-
-            action = json_message.get("action")
-            if action in MessageDispatcher.watch_senders:
-                handler = MessageDispatcher.watch_senders[action]
-                if asyncio.iscoroutinefunction(handler):
-                    await handler(message)
-                else:
-                    handler(message)
-            else:
-                logger.info("Unknown action: {}".format(action))
-        except Exception as e:
-            logger.info("send_to_watch error: {}".format(e))
+        json_message = json.loads(message)
+        action = json_message.get("action")
+        await MessageDispatcher.watch_senders[action](message)
 
     @staticmethod
     def on_received(data):
-        # First byte as int to match CHARACTERISTICS mapping keys
-        try:
-            key = data[0]
-        except TypeError:
-            # Fallback for memoryview/other buffer types
-            key = int(bytes(data)[0])
-        handler = MessageDispatcher.data_received_messages.get(key)
-        if handler:
-            handler(data)
+        key = data[0]
+        if key not in MessageDispatcher.data_received_messages:
+            logger.info(f"Unknown key: {key}")
         else:
-            logger.info("Unknown key: {}".format(key))
+            MessageDispatcher.data_received_messages[key](data)
 
+# Usage example
+if __name__ == "__main__":
+    # Simulated messages
+    sample_message = {"action": "GET_SETTINGS"}
+    sample_data = "1,2,3,4,5"
 
-# Optional usage example (requires an asyncio loop)
-# This is just for illustration; you can remove or adapt it:
-async def main():
-    message = '{"action": "GET_SETTINGS"}'
-    await MessageDispatcher.send_to_watch(message)
-
-# Uncomment to run test:
-# asyncio.run(main())
+    # Simulated message dispatching
+    MessageDispatcher.send_to_watch(sample_message)
+    MessageDispatcher.on_received(sample_data)

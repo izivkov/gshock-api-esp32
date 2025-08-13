@@ -10,7 +10,7 @@ CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 
 
 class SettingsIO:
-    result = None
+    result: CancelableResult = None
     connection = None
 
     @staticmethod
@@ -39,13 +39,13 @@ class SettingsIO:
             arr = bytearray(12)
             arr[0] = CHARACTERISTICS["CASIO_SETTING_FOR_BASIC"]
             if settings.time_format == "24h":
-                arr[1] |= mask_24_hours
+                arr[1] = arr[1] | mask_24_hours
             if not settings.button_tone:
-                arr[1] |= MASK_BUTTON_TONE_OFF
+                arr[1] = arr[1] | MASK_BUTTON_TONE_OFF
             if not settings.auto_light:
-                arr[1] |= MASK_LIGHT_OFF
+                arr[1] = arr[1] | MASK_LIGHT_OFF
             if not settings.power_saving_mode:
-                arr[1] |= POWER_SAVING_MODE
+                arr[1] = arr[1] | POWER_SAVING_MODE
 
             if settings.light_duration == "4s":
                 arr[2] = 1
@@ -68,20 +68,22 @@ class SettingsIO:
             def __getattr__(self, attr):
                 if attr in self:
                     return self[attr]
-                raise AttributeError("DotDict has no attribute '{}'".format(attr))
+                else:
+                    raise AttributeError(f"'DotDict' object has no attribute '{attr}'")
 
             __setattr__ = dict.__setitem__
             __delattr__ = dict.__delitem__
 
         json_setting = json.loads(message).get("value")
-        encoded_setting = encode(DotDict(json_setting))
-        setting_to_set = to_compact_string(to_hex_string(encoded_setting))
+        # dict_setting = json.load(json_setting)
+        encoded_stiing = encode(DotDict(json_setting))
+        setting_to_set = to_compact_string(to_hex_string(encoded_stiing))
 
         await SettingsIO.connection.write(0x000E, setting_to_set)
 
     @staticmethod
     def on_received(message):
-        logger.info("SettingsIO onReceived: {}".format(message))
+        logger.info(f"SettingsIO onReceived: {message}")
 
         def create_json_settings(setting_string):
             mask_24_hours = 0b00000001
@@ -95,24 +97,27 @@ class SettingsIO:
                 settings.time_format = "24h"
             else:
                 settings.time_format = "12h"
-            settings.button_tone = (setting_array[1] & MASK_BUTTON_TONE_OFF) == 0
-            settings.auto_light = (setting_array[1] & MASK_LIGHT_OFF) == 0
-            settings.power_saving_mode = (setting_array[1] & POWER_SAVING_MODE) == 0
+            settings.button_tone = setting_array[1] & MASK_BUTTON_TONE_OFF == 0
+            settings.auto_light = setting_array[1] & MASK_LIGHT_OFF == 0
+            settings.power_saving_mode = setting_array[1] & POWER_SAVING_MODE == 0
 
             if setting_array[4] == 1:
                 settings.date_format = "DD:MM"
             else:
                 settings.date_format = "MM:DD"
 
-            lang_map = {
-                0: "English",
-                1: "Spanish",
-                2: "French",
-                3: "German",
-                4: "Italian",
-                5: "Russian",
-            }
-            settings.language = lang_map.get(setting_array[5], "English")
+            if setting_array[5] == 0:
+                settings.language = "English"
+            if setting_array[5] == 1:
+                settings.language = "Spanish"
+            if setting_array[5] == 2:
+                settings.language = "French"
+            if setting_array[5] == 3:
+                settings.language = "German"
+            if setting_array[5] == 4:
+                settings.language = "Italian"
+            if setting_array[5] == 5:
+                settings.language = "Russian"
 
             if setting_array[2] == 1:
                 settings.light_duration = "4s"

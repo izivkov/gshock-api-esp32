@@ -8,7 +8,7 @@ CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 
 
 class TimerIO:
-    result = None
+    result: CancelableResult = None
     connection = None
 
     @staticmethod
@@ -17,7 +17,8 @@ class TimerIO:
         await connection.request("18")
 
         TimerIO.result = CancelableResult()
-        return await TimerIO.result.get_result()
+        return TimerIO.result.get_result()
+
 
     @staticmethod
     async def send_to_watch(connection):
@@ -28,8 +29,9 @@ class TimerIO:
         def encode(seconds_str):
             in_seconds = int(seconds_str)
             hours = in_seconds // 3600
-            minutes = (in_seconds % 3600) // 60
-            seconds = in_seconds % 60
+            minutes_and_seconds = in_seconds % 3600
+            minutes = minutes_and_seconds // 60
+            seconds = minutes_and_seconds % 60
 
             arr = bytearray(7)
             arr[0] = 0x18
@@ -45,12 +47,16 @@ class TimerIO:
 
     @staticmethod
     def on_received(data):
-        def decode_value(data_bytes):
-            # Assumes `data` is already a bytearray or int array.
-            hours = data_bytes[1]
-            minutes = data_bytes[2]
-            seconds = data_bytes[3]
-            return hours * 3600 + minutes * 60 + seconds
+        def decode_value(data: str) -> str:
+            timer_int_array = data
+
+            hours = timer_int_array[1]
+            minutes = timer_int_array[2]
+            seconds = timer_int_array[3]
+
+            in_seconds = hours * 3600 + minutes * 60 + seconds
+            return in_seconds
 
         decoded = decode_value(data)
-        TimerIO.result.set_result(decoded)
+        seconds = int(decoded)
+        TimerIO.result.set_result(seconds)
