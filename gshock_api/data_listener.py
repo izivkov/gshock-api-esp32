@@ -20,7 +20,8 @@ class DataListener:
         except OSError as e:
             logger.info(f"Device disconnected or notification error: {e}")
         except Exception as e:
-            logger.error(f"Unexpected error in notification listener: {e}")
+            # logger.error(f"Unexpected error in notification listener: {e}")
+            pass
 
     async def subscribe(self, char):
         await self.unsubscribe(char)  # Cancel old listener if exists

@@ -8,7 +8,9 @@ from gshock_api.logger import logger
 from gshock_api.watch_info import watch_info
 # from args import args
 from gshock_api.exceptions import GShockConnectionError
-
+from config import network_time_setter
+from config.network_time_setter import network_time_setter
+from config.config_manager import config_manager
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
@@ -16,6 +18,16 @@ __license__ = "MIT"
 
 
 async def main():
+    config_manager.load()
+    if not config_manager.get("ssid") or not config_manager.get("password"):
+        logger.error(f" {config_manager.get_instructions()}")
+        return
+    
+    time_set = network_time_setter.set_time(config_manager.get("ssid"), config_manager.get("password"), config_manager.get("timezone"))
+    if not time_set:
+        logger.error("Failed to set time. Please check your configuration.")
+        return
+
     await run_time_server()
 
 def prompt():
@@ -25,7 +37,6 @@ def prompt():
     logger.info("If Auto-time set on watch, the watch will connect and run automatically up to 4 times per day.")
     logger.info("==============================================================================================")
     logger.info("")
-
 
 async def run_time_server():
     excluded_watches = [
@@ -40,12 +51,11 @@ async def run_time_server():
             logger.info("Waiting for connection...")
             connection = Connection()
             connected = await connection.connect(excluded_watches)
+
             if not connected:
                 logger.info("Connect attempt failed; retrying...")
                 await asyncio.sleep(1)
                 continue
-
-            logger.info("Connected...")
 
             api = GshockAPI(connection)
             pressed_button = await api.get_pressed_button()
@@ -54,11 +64,6 @@ async def run_time_server():
                     and pressed_button != WatchButton.NO_BUTTON
                     and pressed_button != WatchButton.LOWER_LEFT):
                 continue
-
-            logger.info("Pressed button: {}".format(pressed_button))
-
-            watch_name = await api.get_watch_name()
-            logger.info("Watch name: {}".format(watch_name))
 
             # Apply fine adjustment to the time
             # fine_adjustment_secs = args.get().fine_adjustment_secs
@@ -71,9 +76,6 @@ async def run_time_server():
                 now_tuple[0], now_tuple[1], now_tuple[2], now_tuple[3], now_tuple[4], now_tuple[5]
             )
             logger.info("Time set at {} on {}".format(now_str, watch_info.name))
-
-            watch_name = await api.get_watch_name()
-            logger.info("Watch name: {}".format(watch_name))
 
             if watch_info.alwaysConnected == False:
                 await connection.disconnect()

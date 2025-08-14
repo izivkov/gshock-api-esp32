@@ -211,8 +211,6 @@ class WatchInfo:
         if not self.shortName:
             return
 
-        logger.info(f"Setting watch model based on short name: {self.shortName}")
-        
         # Special case: exact match for ECB models
         if self.shortName in {"ECB-10", "ECB-20", "ECB-30"}:
             self.model = WATCH_MODEL.ECB

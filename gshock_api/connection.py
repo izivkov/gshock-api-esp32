@@ -45,7 +45,7 @@ class Connection:
                 async with aioble.scan(5000) as scanner:
                     async for adv in scanner:
                         if _is_target_device(adv, excluded_watches):
-                            print("Found CASIO device:", adv.name(),
+                            logger.info("Found CASIO device:", adv.name(),
                                 "at", _format_addr(adv.device.addr))
                             
                             watch_info.set_name_and_model(adv.name()) 
@@ -86,7 +86,6 @@ class Connection:
 
             if target_service:
                 async for char in target_service.characteristics():
-                    logger.info(f"Discovered characteristic: {char.uuid}")
                     char_map[char.uuid] = char
         except Exception as e:
             logger.error(f"Error during service discovery: {e}")
@@ -112,9 +111,7 @@ class Connection:
 
             asyncio.sleep(0.1)  # Allow time for any previous writes to complete
 
-            logger.info(f"Sending data to watch: {to_hex_string(payload)} on handle {handle} ({uuid}, {payload[0]})")
             await char.write(payload, response=responseType, timeout_ms=4000)
-            logger.info(f"Data sent successfully to watch on handle {handle} ({uuid})")
             await data_listener.smart_subscribe(char, responseType)
 
         except OSError as err:
