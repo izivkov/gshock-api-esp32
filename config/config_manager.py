@@ -1,11 +1,11 @@
 import json
 import os
 
-{
-    "ssid": "MyWiFi",
-    "password": "MySecretPass",
-    "timezone": "America/Toronto"
-}
+# {
+#     "ssid": "MyWiFi",
+#     "password": "MySecretPass",
+#     "timezone": "America/Toronto"
+# }
 
 class ConfigManager:
     def __init__(self, filename="config.json"):
@@ -15,7 +15,7 @@ class ConfigManager:
     def get_instructions(self):
 
         return """
-        
+
         Configuration file not found or invalid. We need to configure a WiFi connection,
         so the device will obtain network time.
 
@@ -39,7 +39,6 @@ class ConfigManager:
         try:
             with open(self.filename, "r") as f:
                 self.config = json.load(f)
-            print("Config loaded:", self.config)
         except OSError:
             print("Config file not found, using defaults")
             self.config = {}
