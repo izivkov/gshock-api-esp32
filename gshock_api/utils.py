@@ -57,7 +57,7 @@ def to_hex_string_compact(ascii_str, max_len):
     return "".join("{:02x}".format(byte) for byte in b[:max_len])
 
 def dec_to_hex(dec):
-    return int(hex(dec)[2:], 16)
+    return int(str(hex(dec))[2:])
 
 def encode_string(ascii_string, maxlen):
     int_arr = [ord(c) for c in ascii_string]

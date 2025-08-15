@@ -6,26 +6,19 @@ from gshock_api.gshock_api import GshockAPI
 from gshock_api.iolib.button_pressed_io import WatchButton
 from gshock_api.logger import logger
 from gshock_api.watch_info import watch_info
-# from args import args
 from gshock_api.exceptions import GShockConnectionError
 from config import network_time_setter
-from config.network_time_setter import network_time_setter
 from config.config_manager import config_manager
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
 __license__ = "MIT"
 
-
-async def main():
+async def main():    
     config_manager.load()
+    
     if not config_manager.get("ssid") or not config_manager.get("password"):
         logger.error(f" {config_manager.get_instructions()}")
-        return
-    
-    time_set = network_time_setter.set_time(config_manager.get("ssid"), config_manager.get("password"), config_manager.get("timezone"))
-    if not time_set:
-        logger.error("Failed to set time. Please check your configuration.")
         return
 
     await run_time_server()

@@ -21,7 +21,6 @@ class Connection:
         self._discovered = False
 
     async def connect(self, excluded_watches=[]) -> bool:
-
         def _format_addr(addr_bytes):
             """Convert BLE address bytes to string format."""
             return ':'.join(f"{b:02X}" for b in addr_bytes)
@@ -109,9 +108,9 @@ class Connection:
             payload = to_casio_cmd(data)
             responseType = True if handle == 0x0E else False
 
-            asyncio.sleep(0.1)  # Allow time for any previous writes to complete
+            await asyncio.sleep(0.1)
 
-            await char.write(payload, response=responseType, timeout_ms=4000)
+            await char.write(payload, response=responseType, timeout_ms=6000)
             await data_listener.smart_subscribe(char, responseType)
 
         except OSError as err:

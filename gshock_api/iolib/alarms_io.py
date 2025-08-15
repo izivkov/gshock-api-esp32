@@ -6,6 +6,7 @@ from gshock_api.cancelable_result import CancelableResult
 from gshock_api.utils import to_compact_string, to_hex_string
 from gshock_api.casio_constants import CasioConstants
 from gshock_api.logger import logger
+import uasyncio as asyncio
 
 CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 

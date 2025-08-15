@@ -78,9 +78,12 @@ async def run_api_tests(argv):
         await app_notifications(api)
 
         # Create a single event (simplified time handling)
-        utc_timestamp = time.time()
-        event_date = create_event_date(utc_timestamp, None)  # Pass None or minimal tz support
+        utc_timestamp_ms = time.time() * 1000
+        print (f"---> utc_timestamp: {utc_timestamp_ms}")
+        event_date = create_event_date(utc_timestamp_ms, None)  # Pass None or minimal tz support
+        print (f"----> event_date: {event_date}")
         event_date_str = json.dumps(event_date.__dict__)
+
         event_data = {
             "title": "Test Event",
             "time": {

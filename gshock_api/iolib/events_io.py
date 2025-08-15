@@ -199,7 +199,6 @@ class EventsIO:
     @staticmethod
     def on_received(message):
         data = to_hex_string(message)
-
         def reminder_time_to_json(reminder_str):
             def convert_array_list_to_json_array(array_list):
                 json_array = []
