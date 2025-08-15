@@ -10,6 +10,9 @@ class NetworkTimeSetter:
         self.wlan.active(True)
 
     def _connect_wifi(self, ssid, password):
+        if not self.wlan.active():
+            self.wlan.active(True)
+
         if not self.wlan.isconnected():
             print(f"Connecting to WiFi {ssid}...")
             self.wlan.connect(ssid, password)
