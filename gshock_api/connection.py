@@ -74,20 +74,25 @@ class Connection:
 
     async def discover_services(self, conn):
         char_map = {}
+        services = []
+
         try:
-            target_uuid = bluetooth.UUID(CasioConstants.CASIO_MAIN_SERVICE_UUID)
-            target_service = None
-
+            # First pass — collect all services
             async for service in conn.services():
-                if service.uuid == target_uuid:
-                    target_service = service
-                    # Can't break — discovery must complete
+                services.append(service)
 
-            if target_service:
-                async for char in target_service.characteristics():
-                    char_map[char.uuid] = char
+            # Second pass — get characteristics for each service
+            for service in services:
+                try:
+                    async for char in service.characteristics():
+                        char_map[char.uuid] = char
+                except Exception as ce:
+                    logger.error(f"Error reading characteristics from {service.uuid}: {ce}")
+                    continue
+
         except Exception as e:
             logger.error(f"Error during service discovery: {e}")
+
         return char_map
 
     async def init_characteristics_map(self):
@@ -116,16 +121,13 @@ class Connection:
         except OSError as err:
             logger.error(f"OSError sending data to watch: {err}")
             raise GShockIgnorableException(err)
+        
         except Exception as e:
             logger.error(f"Exception: {e!r}")
-            
-            # Get exception type
             logger.error(f"Type: {type(e).__name__}")
-
-            # Get full traceback (MicroPython-compatible)
             import sys
             sys.print_exception(e)            
-            # raise GShockConnectionError(f"Unable to send data to watch: {e}")            
+            raise GShockConnectionError(f"Unable to send data to watch: {e}")            
 
     async def disconnect(self):
         if self.client is None:
