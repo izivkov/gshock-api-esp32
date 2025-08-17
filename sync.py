@@ -1,94 +1,107 @@
 import os
 import subprocess
 
-print(f"Running script from: {os.path.abspath(__file__)}")
+# ---------------- Configuration ----------------
+LOCAL_FOLDER = "."        # project root
+ESP_ROOT = "/"            # ESP32 root
+ESP_PORT = "/dev/ttyACM0"
 
-local_dir = os.path.expanduser("~/projects/gshock-api-esp32")
-board_root = "/"
-port = "/dev/ttyACM0"  # Your port
+# Files/folders to ignore
+IGNORE = {".git", ".vscode", "__pycache__", ".DS_Store"}
+EXTENSIONS = {".py"}  # only copy .py files
 
-def list_local_py_files(base_dir):
-    py_files = []
-    print(f"Scanning local directory: {base_dir}")
-    for root, dirs, files in os.walk(base_dir):
-        print(f"Checking in {root}: files={files}")
+# ---------------- Helper Functions ----------------
+def list_local_files():
+    """Return list of local files to copy, relative to LOCAL_FOLDER."""
+    local_files = []
+    for root, dirs, files in os.walk(LOCAL_FOLDER):
+        # filter ignored directories
+        dirs[:] = [d for d in dirs if d not in IGNORE]
         for f in files:
-            if f.lower().endswith('.py'):
-                full_path = os.path.join(root, f)
-                rel_path = os.path.relpath(full_path, base_dir).replace("\\", "/")
-                print(f"Found local file: {rel_path}")
-                py_files.append(rel_path)
-    print(f"Total local .py files found: {len(py_files)}")
-    return py_files
+            if f in IGNORE:
+                continue
+            if os.path.splitext(f)[1] not in EXTENSIONS:
+                continue
+            rel_path = os.path.relpath(os.path.join(root, f), LOCAL_FOLDER)
+            local_files.append(rel_path.replace("\\", "/"))
+    return local_files
 
-def list_board_py_files():
-    print("Listing .py files on the board...")
-    try:
-        cmd = ["mpremote", "connect", port, "fs", "ls", "-r", board_root]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        lines = result.stdout.splitlines()
+def list_esp_files():
+    """Return list of files on ESP32 (flattened)."""
+    cmd = ["mpremote", "connect", ESP_PORT, "fs", "ls", "-r", ESP_ROOT]
+    raw = subprocess.check_output(cmd).decode().splitlines()
+    files = []
+    for line in raw:
+        line = line.strip()
+        if not line or line.startswith("ls") or line.startswith("Directory"):
+            continue
+        # remove line numbers if present
+        parts = line.split()
+        if len(parts) > 1 and parts[0].isdigit():
+            file_path = " ".join(parts[1:])
+        else:
+            file_path = line
+        files.append(file_path.lstrip("/"))
+    return files
 
-        py_files = []
-        for line in lines:
-            print("Splitting size from filename...")
-            # Split line by whitespace, take the filename part only (everything after size)
-            parts = line.strip().split(maxsplit=1)
-            if len(parts) == 2:
-                size, filename = parts
-                if filename.endswith(".py"):
-                    py_files.append(filename)
-                    print(f"Found on board: {filename}")
+def normalize(path):
+    return path.lstrip("/").replace("\\", "/")
 
-        print(f"Total board .py files found: {len(py_files)}")
-        return py_files
+def delete_extra_files(local_files, esp_files):
+    """Delete ESP32 files not present locally."""
+    local_set = set(normalize(f) for f in local_files)
+    for f in esp_files:
+        f_norm = normalize(f)
+        # ignore directories
+        if f_norm.endswith("/"):
+            continue
+        if f_norm not in local_set:
+            print(f"Deleting extra file on ESP32: {f_norm}")
+            subprocess.run(["mpremote", "connect", ESP_PORT, "fs", "rm", f_norm])
 
-    except subprocess.CalledProcessError as e:
-        print("Error listing files on board:", e)
-        print("Output:", e.output)
-        return []
+def delete_extra_files_dry_run(local_files, esp_files, dry_run=True):
+    local_set = set(normalize(f) for f in local_files)
+    for f in esp_files:
+        f_norm = normalize(f)
+        if f_norm.endswith("/"):
+            continue
+        if f_norm not in local_set:
+            print(f"[Dry-run] Would delete: {f_norm}" if dry_run else f"Deleting: {f_norm}")
+            if not dry_run:
+                subprocess.run(["mpremote", "connect", ESP_PORT, "fs", "rm", f_norm])
 
-def upload_file(rel_path):
-    local_path = os.path.join(local_dir, rel_path)
-    board_path = ":" + rel_path.replace("\\", "/")  # Ensure remote path format
+def copy_file(local_file):
+    """Copy a single file to ESP32."""
+    remote_path = os.path.join(ESP_ROOT, local_file).replace("\\", "/")
+    remote_dir = os.path.dirname(remote_path)
+    # create directory if needed
+    if remote_dir != "/":
+        subprocess.run(["mpremote", "connect", ESP_PORT, "fs", "mkdir", remote_dir])
+    # copy file
+    print(f"Copying {local_file} → {remote_path}")
+    subprocess.run([
+        "mpremote", "connect", ESP_PORT, "fs", "cp",
+        local_file, ":" + remote_path
+    ])
 
-    # Extract directory part of remote path
-    remote_dir = os.path.dirname(rel_path).replace("\\", "/")
+# ---------------- Main ----------------
+def main():
+    print("Listing local files...")
+    local_files = list_local_files()
+    print(f"{len(local_files)} local files to copy.")
 
-    # If the file is inside a directory, create that directory on device first
-    if remote_dir != "":
-        print(f"Creating remote directory :{remote_dir} if it does not exist...")
-        try:
-            subprocess.run(["mpremote", "connect", port, "fs", "mkdir", f":{remote_dir}"], check=True)
-        except subprocess.CalledProcessError as e:
-            # mkdir fails if directory exists, this is okay
-            print(f"Warning: Could not create directory :{remote_dir} (may already exist): {e}")
+    print("Listing ESP32 files...")
+    esp_files = list_esp_files()
+    print(f"{len(esp_files)} files on ESP32.")
 
-    print(f"Uploading {local_path} to {board_path}...")
-    subprocess.run(["mpremote", "connect", port, "fs", "cp", local_path, board_path], check=True)
+    # Delete extra files
+    delete_extra_files(local_files, esp_files)
 
-def delete_board_file(file_path):
-    print(f"Deleting {file_path} from board...")
-    try:
-        subprocess.run(["mpremote", "connect", port, "fs", "rm", file_path], check=True)
-        print("Delete success")
-    except subprocess.CalledProcessError as e:
-        print(f"Error deleting {file_path}: {e}")
-
-def sync():
-    print("Starting sync process...")
-    local_files = list_local_py_files(local_dir)
-    board_files = list_board_py_files()
-
-    # Upload or update local files
+    # Copy files one by one
     for f in local_files:
-        upload_file(f)
+        copy_file(f)
 
-    # Remove files on board not in local
-    for bf in board_files:
-        if bf not in local_files:
-            delete_board_file(bf)
-    print("Sync process completed.")
+    print("Sync complete!")
 
 if __name__ == "__main__":
-    print(f"Starting...")
-    sync()
+    main()
