@@ -1,6 +1,6 @@
 
 from machine import Pin, SPI, PWM
-import st7789py as st7789
+import display.st7789py as st7789
 
 
 TFA = 0

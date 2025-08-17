@@ -1,7 +1,7 @@
-import st7789py as st7789
-import tft_config
-import vga2_8x16 as font_small
-import vga2_bold_16x32 as font_big  # larger font for title
+import display.st7789py as st7789
+import display.tft_config as tft_config
+import display.vga2_8x16 as font_small
+import display.vga2_bold_16x32 as font_big  # larger font for title
 
 # --------------------------------------------------------------------
 def display_data(data):
