@@ -9,7 +9,7 @@ from gshock_api.watch_info import watch_info
 from gshock_api.exceptions import GShockConnectionError, GShockIgnorableException
 from config import network_time_setter
 from config.config_manager import config_manager
-from lib.led import led, LEDController
+from lib.display.led import led, LEDController
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
