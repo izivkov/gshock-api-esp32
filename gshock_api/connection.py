@@ -1,5 +1,6 @@
 import uasyncio as asyncio
 import aioble
+from aioble import DeviceDisconnectedError, GattError  # Micropython aioble exception
 import bluetooth
 from bluetooth import UUID
 from gshock_api.casio_constants import CasioConstants
@@ -99,35 +100,34 @@ class Connection:
         self.characteristics_map = await self.discover_services(self.client)
 
     async def write(self, handle, data):
+        uuid = self.handles_map.get(handle)
+
+        if UUID(uuid) not in self.characteristics_map:
+            logger.info(f"write failed: handle {handle} not in characteristics map")
+            if handle == 13:
+                logger.info("Your watch does not support notifications...")
+            return
+
+        char = self.characteristics_map[UUID(uuid)]
+        payload = to_casio_cmd(data)
+        responseType = (handle == 0x0E)
+
         try:
-            uuid = self.handles_map.get(handle)
-
-            if UUID(uuid) not in self.characteristics_map:
-                logger.info(f"write failed: handle {handle} not in characteristics map")
-                if handle == 13:
-                    logger.info("Your watch does not support notifications...")
-                return
-
-            char = self.characteristics_map[UUID(uuid)]
-
-            payload = to_casio_cmd(data)
-            responseType = True if handle == 0x0E else False
-
             await asyncio.sleep(0.1)
-
             await char.write(payload, response=responseType, timeout_ms=6000)
             await data_listener.smart_subscribe(char, responseType)
 
-        except OSError as err:
-            logger.error(f"OSError sending data to watch: {err}")
+        except (OSError, GattError, DeviceDisconnectedError) as err:
+            logger.error(f"Connection error sending data to watch: {err}")
+            raise GShockIgnorableException(err)
+
+        except asyncio.TimeoutError as err:
+            logger.error(f"Timeout sending data to watch: {err}")
             raise GShockIgnorableException(err)
         
-        except Exception as e:
-            logger.error(f"Exception: {e!r}")
-            logger.error(f"Type: {type(e).__name__}")
-            import sys
-            sys.print_exception(e)            
-            raise GShockConnectionError(f"Unable to send data to watch: {e}")            
+        except ValueError as err:
+            logger.error(f"Value error sending data to watch: {err}")
+            raise GShockIgnorableException(err)
 
     async def disconnect(self):
         if self.client is None:

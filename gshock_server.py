@@ -6,21 +6,24 @@ from gshock_api.gshock_api import GshockAPI
 from gshock_api.iolib.button_pressed_io import WatchButton
 from gshock_api.logger import logger
 from gshock_api.watch_info import watch_info
-from gshock_api.exceptions import GShockConnectionError
+from gshock_api.exceptions import GShockConnectionError, GShockIgnorableException
 from config import network_time_setter
 from config.config_manager import config_manager
+from lib.led import led, LEDController
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
 __license__ = "MIT"
+
 
 async def main():    
     config_manager.load()
     
     if not config_manager.get("ssid") or not config_manager.get("password"):
         logger.error(f" {config_manager.get_instructions()}")
-        return
-
+        led.red_on()
+        # return
+    
     await run_time_server()
 
 def prompt():
@@ -43,7 +46,9 @@ async def run_time_server():
         try:
             logger.info("Waiting for connection...")
             connection = Connection()
+            led.set_mode(LEDController.MODE_BLINK_GREEN)
             connected = await connection.connect(excluded_watches)
+            led.set_mode(LEDController.MODE_SMOOTH)
 
             if not connected:
                 logger.info("Connect attempt failed; retrying...")
@@ -73,8 +78,14 @@ async def run_time_server():
             if watch_info.alwaysConnected == False:
                 await connection.disconnect()
 
-        except GShockConnectionError as e:
+        except (GShockConnectionError, GShockIgnorableException) as e:
+            led.set_mode(LEDController.MODE_BLINK_RED)
             logger.error("Got error: {}".format(e))
+            continue
+
+        except Exception as e: # Just in case
+            led.set_mode(LEDController.MODE_BLINK_RED)
+            logger.error("Unknown error: {}".format(e))
             continue
 
 # Start the main loop
