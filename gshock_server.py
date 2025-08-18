@@ -1,5 +1,5 @@
 import uasyncio as asyncio
-import time
+import utime as time
 
 from gshock_api.connection import Connection
 from gshock_api.gshock_api import GshockAPI
@@ -10,11 +10,11 @@ from gshock_api.exceptions import GShockConnectionError, GShockIgnorableExceptio
 from config import network_time_setter
 from config.config_manager import config_manager
 from lib.display.led import led, LEDController
+from lib.display.display import display
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
 __license__ = "MIT"
-
 
 async def main():    
     config_manager.load()
@@ -75,6 +75,9 @@ async def run_time_server():
             )
             logger.info("Time set at {} on {}".format(now_str, watch_info.name))
 
+            if pressed_button == WatchButton.LOWER_LEFT:
+                await show_display(api)
+
             if watch_info.alwaysConnected == False:
                 await connection.disconnect()
 
@@ -87,6 +90,87 @@ async def run_time_server():
             led.set_mode(LEDController.MODE_BLINK_RED)
             logger.error("Unknown error: {}".format(e))
             continue
+
+def get_next_alarm_time(alarms):
+    now = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)
+    now_sec = time.mktime(now)
+
+    times_today = []
+    times_tomorrow = []
+
+    for alarm in alarms:
+        if not alarm.get("enabled", True):
+            continue
+        hour = alarm.get("hour")
+        minute = alarm.get("minute")
+        if not (isinstance(hour, int) and isinstance(minute, int)):
+            continue
+
+        # Today’s alarm time
+        alarm_today = (now[0], now[1], now[2], hour, minute, 0, 0, 0)
+        alarm_today_sec = time.mktime(alarm_today)
+
+        if alarm_today_sec > now_sec:
+            times_today.append(alarm_today_sec)
+        else:
+            # Tomorrow’s alarm time
+            alarm_tomorrow = (now[0], now[1], now[2] + 1, hour, minute, 0, 0, 0)
+            alarm_tomorrow_sec = time.mktime(alarm_tomorrow)
+            times_tomorrow.append(alarm_tomorrow_sec)
+
+    next_alarm_sec = None
+    if times_today:
+        next_alarm_sec = min(times_today)
+    elif times_tomorrow:
+        next_alarm_sec = min(times_tomorrow)
+    else:
+        return None, None
+
+    next_alarm = time.localtime(next_alarm_sec)
+    return next_alarm[3], next_alarm[4]  # (hour, minute)
+
+async def show_display(api: GshockAPI):
+    try:
+        alarms = await api.get_alarms()
+        hour, minute = get_next_alarm_time(alarms)
+        if hour is not None and minute is not None:
+            alarm_str = "{:02}:{:02}".format(hour, minute)
+        else:
+            alarm_str = "Invalid time"
+
+        print(f"Got alarms: {alarm_str}...")
+        
+        # Retriving reminders often takes too long...that connection time out.
+        # reminders = await api.get_reminders()
+        # reminder_title = reminders[0].get("title") if reminders else "None"
+        # print(f"Got Reminders: {reminder_title}...")
+
+        condition = await api.get_watch_condition()
+        battery = condition.get("battery_level_percent")
+        temperature = condition.get("temperature")
+        print(f"Got battery and temperature {battery}, {temperature}...")
+
+        name = watch_info.name
+        short_name = ' '.join(name.strip().split()[1:])
+
+        # Format last sync time using utime
+        t = time.localtime()
+        last_sync = "{:02}/{:02} {:02}:{:02}".format(t[1], t[2], t[3], t[4])
+        print(f"Got time sync: {last_sync}...")
+
+        data = [
+        ("", short_name),
+        ("Last Sync", last_sync),
+        ("Next Alarm:", alarm_str),
+        # ("Rem:", reminder_title),
+        ("TimeZone:", config_manager.get("timezone")),
+    ]
+        display.display_data(data)
+        display.draw_battery_icon(percent=battery)
+        display.draw_temperature(temperature=temperature)
+
+    except Exception as e:
+        logger.error("Got error: {}".format(e))
 
 # Start the main loop
 asyncio.run(main())

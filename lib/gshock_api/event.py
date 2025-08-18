@@ -17,9 +17,8 @@ class EventDate:
             and event_date.day == self.day
         )
 
-    # def __str__(self):
-    #     return f"year: {self.year}, month: {self.month}, day: {self.day}"
-
+    def __str__(self):
+        return "year: {}, month: {}, day: {}".format(self.year, self.month, self.day)
 
 class RepeatPeriod:
     NEVER = "NEVER"
