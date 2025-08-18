@@ -138,8 +138,6 @@ async def show_display(api: GshockAPI):
         else:
             alarm_str = "Invalid time"
 
-        print(f"Got alarms: {alarm_str}...")
-        
         # Retriving reminders often takes too long...that connection time out.
         # reminders = await api.get_reminders()
         # reminder_title = reminders[0].get("title") if reminders else "None"
@@ -148,15 +146,15 @@ async def show_display(api: GshockAPI):
         condition = await api.get_watch_condition()
         battery = condition.get("battery_level_percent")
         temperature = condition.get("temperature")
-        print(f"Got battery and temperature {battery}, {temperature}...")
 
         name = watch_info.name
         short_name = ' '.join(name.strip().split()[1:])
 
-        # Format last sync time using utime
         t = time.localtime()
         last_sync = "{:02}/{:02} {:02}:{:02}".format(t[1], t[2], t[3], t[4])
-        print(f"Got time sync: {last_sync}...")
+
+        auto_sync="On" if await api.get_time_adjustment() else "Off"
+        print(f"Auto Sync: {auto_sync}")
 
         data = [
         ("", short_name),
@@ -164,6 +162,7 @@ async def show_display(api: GshockAPI):
         ("Next Alarm:", alarm_str),
         # ("Rem:", reminder_title),
         ("TimeZone:", config_manager.get("timezone")),
+        ("Auto Sync:", auto_sync),
     ]
         display.display_data(data)
         display.draw_battery_icon(percent=battery)
