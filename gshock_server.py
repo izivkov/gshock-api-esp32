@@ -1,16 +1,21 @@
+import gc
+
 import uasyncio as asyncio
 import utime as time
-
 from gshock_api.connection import Connection
 from gshock_api.gshock_api import GshockAPI
 from gshock_api.iolib.button_pressed_io import WatchButton
 from gshock_api.logger import logger
 from gshock_api.watch_info import watch_info
 from gshock_api.exceptions import GShockConnectionError, GShockIgnorableException
-from config import network_time_setter
-from config.config_manager import config_manager
+from lib.config import network_time_setter
+from lib.config.config_manager import config_manager
 from lib.display.led import led, LEDController
+
 from lib.display.display import display
+
+from lib.utils.run_once import run_once_key
+from lib.utils.persistent_store import store
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
@@ -23,6 +28,8 @@ async def main():
         logger.error(f" {config_manager.get_instructions()}")
         led.red_on()
         # return
+
+    print(f"Local time: {time.localtime()}")
     
     await run_time_server()
 
@@ -44,8 +51,19 @@ async def run_time_server():
 
     while True:
         try:
+            gc.collect()
+            
+            run_once_key(
+                "show_welcome_screen",
+                display.show_welcome_screen,
+                "Waiting for connection...",
+                watch_name=store.get("watch_name", None),
+                last_sync=store.get("last_connected", None),
+            )
+
             logger.info("Waiting for connection...")
             connection = Connection()
+
             led.set_mode(LEDController.MODE_BLINK_GREEN)
             connected = await connection.connect(excluded_watches)
             led.set_mode(LEDController.MODE_SMOOTH)
@@ -55,13 +73,15 @@ async def run_time_server():
                 await asyncio.sleep(1)
                 continue
 
+            # Update store
+            t = time.localtime()  # returns (year, month, mday, hour, minute, second, weekday, yearday)
+            formatted_time = "{:02d}/{:02d} {:02d}:{:02d}".format(t[1], t[2], t[3], t[4])
+
+            store.add("last_connected", formatted_time)
+            store.add("watch_name", watch_info.name)
+
             api = GshockAPI(connection)
             pressed_button = await api.get_pressed_button()
-
-            if (pressed_button != WatchButton.LOWER_RIGHT
-                    and pressed_button != WatchButton.NO_BUTTON
-                    and pressed_button != WatchButton.LOWER_LEFT):
-                continue
 
             # Apply fine adjustment to the time
             # fine_adjustment_secs = args.get().fine_adjustment_secs
@@ -77,6 +97,10 @@ async def run_time_server():
 
             if pressed_button == WatchButton.LOWER_LEFT:
                 await show_display(api)
+            else:
+                display.show_welcome_screen("Waiting for connection...",
+                                            watch_name=watch_info.name,
+                                            last_sync=formatted_time)
 
             if watch_info.alwaysConnected == False:
                 await connection.disconnect()
@@ -138,11 +162,6 @@ async def show_display(api: GshockAPI):
         else:
             alarm_str = "Invalid time"
 
-        # Retriving reminders often takes too long...that connection time out.
-        # reminders = await api.get_reminders()
-        # reminder_title = reminders[0].get("title") if reminders else "None"
-        # print(f"Got Reminders: {reminder_title}...")
-
         condition = await api.get_watch_condition()
         battery = condition.get("battery_level_percent")
         temperature = condition.get("temperature")
@@ -160,13 +179,16 @@ async def show_display(api: GshockAPI):
         ("", short_name),
         ("Last Sync", last_sync),
         ("Next Alarm:", alarm_str),
-        # ("Rem:", reminder_title),
         ("TimeZone:", config_manager.get("timezone")),
-        ("Auto Sync:", auto_sync),
-    ]
+        ("Auto Sync:", auto_sync)
+        ]
+
         display.display_data(data)
         display.draw_battery_icon(percent=battery)
         display.draw_temperature(temperature=temperature)
+
+    except Exception as e:
+        logger.error("Got error: {}".format(e))
 
     except Exception as e:
         logger.error("Got error: {}".format(e))

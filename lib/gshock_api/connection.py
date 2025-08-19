@@ -10,6 +10,7 @@ from gshock_api.utils import to_casio_cmd, to_hex_string
 from gshock_api.watch_info import watch_info
 from gshock_api.data_listener import data_listener
 from gshock_api import message_dispatcher
+import gc
 
 class Connection:
     def __init__(self, address=None):
@@ -63,7 +64,12 @@ class Connection:
 
             # Subscribe only to the known notifiable characteristics
             for char_uuid in CasioConstants.CASIO_NOTIFY_CHARACTERISTICS:
+                gc.collect()
                 char = await service.characteristic(bluetooth.UUID(char_uuid))
+                gc.collect()
+                if char is None:
+                    continue
+
                 await data_listener.subscribe(char)
 
             await self.init_characteristics_map()
@@ -87,6 +93,7 @@ class Connection:
                 try:
                     async for char in service.characteristics():
                         char_map[char.uuid] = char
+
                 except Exception as ce:
                     logger.error(f"Error reading characteristics from {service.uuid}: {ce}")
                     continue

@@ -2,6 +2,7 @@ import display.st7789py as st7789
 import display.tft_config as tft_config
 import display.vga2_8x16 as font_small
 import display.vga2_bold_16x32 as font_big  # larger font for title
+import gc
 
 class Display:
     def __init__(self):
@@ -18,6 +19,10 @@ class Display:
         Display a list of (key, value) tuples on the screen.
         If a key is empty, the value is centered and uses a bigger font.
         """
+
+        # Clear display
+        self.tft.fill(self.bg)  # fill with background color
+        gc.collect()
 
         # layout parameters
         line_gap = 6
@@ -98,6 +103,48 @@ class Display:
 
         self.tft.text(font, temp_str, x, y, self.fg, self.bg)
 
+    def show_welcome_screen(self, message, watch_name=None, last_sync=None):
+        """
+        Display a multi-line welcome message directly on ST7789 screen.
+        Lines are horizontally centered, stacked from bottom upwards.
+        If watch_name and last_sync are provided, they appear above the message.
+        Each line can store its own font.
+        """
+        margin_bottom = 40       # Bottom margin in pixels
+        line_spacing = 4         # Pixels between lines
+
+        # Compose all lines (store as tuples: (text, font))
+        lines = []
+        if watch_name is not None:
+            short_name = ' '.join(watch_name.strip().split()[1:])
+            lines.append((f"{short_name}", font_big))  
+
+        lines.append((f"", font_small))  
+        lines.append(("Last Synced:", font_big)) 
+        lines.append((last_sync, font_big)) 
+        lines.append((f"", font_small))  
+        lines.append((message, font_small)) 
+
+        # Measure width/height of each line based on its font
+        line_widths = [len(text) * f.WIDTH for text, f in lines]
+        line_heights = [f.HEIGHT for _, f in lines]
+
+        total_text_height = sum(line_heights) + line_spacing * (len(lines) - 1)
+
+        # Compute vertical starting point (bottom-aligned)
+        start_y = self.tft.height - total_text_height - margin_bottom
+
+        # Clear screen first (black background)
+        self.tft.fill(self.bg)
+
+        # Draw all lines centered using their own font
+        y = start_y
+        for i, (text, f) in enumerate(lines):
+            text_w = line_widths[i]
+            x = (self.tft.width - text_w) // 2  # center horizontally
+            self.tft.text(f, text, x, y, self.fg, self.bg)
+            y += f.HEIGHT + line_spacing
+        
     # --------------------------------------------------------------------
     # Example usage
     data = [

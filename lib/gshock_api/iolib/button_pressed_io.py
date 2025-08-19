@@ -22,12 +22,13 @@ class ButtonPressedIO:
     async def request(connection):
         ButtonPressedIO.connection = connection
         await connection.request("10")
-
         ButtonPressedIO.result = CancelableResult()
         return ButtonPressedIO.result.get_result()
 
     @staticmethod
     async def send_to_watch(connection):
+        print("Sending to watch: {}".format(to_compact_string(CHARACTERISTICS["CASIO_BLE_FEATURES"])))
+        
         # usually write is sync in uPy, but keeping async for your BLE library
         connection.write(0x000C, bytearray([CHARACTERISTICS["CASIO_BLE_FEATURES"]]))
 

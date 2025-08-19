@@ -1,7 +1,7 @@
-from config.config_manager import config_manager
-from config.network_time_setter import network_time_setter
+from lib.config.config_manager import config_manager
+from lib.config.network_time_setter import network_time_setter
 from gshock_api.logger import logger
-from lib.led import led, LEDController
+from lib.display.led import led, LEDController
 
 def set_time_on_board():
     config_manager.load()
