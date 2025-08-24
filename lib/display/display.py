@@ -23,6 +23,7 @@ class Display:
         # Clear display
         self.tft.fill(self.bg)  # fill with background color
         gc.collect()
+        print("Free memory:", gc.mem_free())
 
         # layout parameters
         line_gap = 6
@@ -50,6 +51,7 @@ class Display:
                 self.tft.text(font, value, val_x, current_y, self.fg, self.bg)
 
                 current_y += font.HEIGHT + line_gap
+        gc.collect()
         
     def draw_battery_icon(self, percent, width=20, height=10, top_margin=50, right_margin=20):
         """
@@ -85,7 +87,9 @@ class Display:
 
         if fill_width < (width - 2):
             self.tft.fill_rect(x + 1 + fill_width, y + 1, (width - 2) - fill_width, height - 2, self.bg)
-            
+
+        gc.collect()
+   
     def draw_temperature(self, temperature, font=font_small, height=10, top_margin=50, left_margin=20):
         """
         Draws the temperature with degree symbol at the bottom-left corner.
@@ -102,6 +106,7 @@ class Display:
         y = self.tft.height - height - top_margin
 
         self.tft.text(font, temp_str, x, y, self.fg, self.bg)
+        gc.collect()
 
     def show_welcome_screen(self, message, watch_name=None, last_sync=None):
         """
@@ -110,6 +115,10 @@ class Display:
         If watch_name and last_sync are provided, they appear above the message.
         Each line can store its own font.
         """
+
+        gc.collect()
+        print("Free memory:", gc.mem_free())
+
         margin_bottom = 40       # Bottom margin in pixels
         line_spacing = 4         # Pixels between lines
 
@@ -145,6 +154,8 @@ class Display:
             self.tft.text(f, text, x, y, self.fg, self.bg)
             y += f.HEIGHT + line_spacing
         
+        gc.collect()
+
     # --------------------------------------------------------------------
     # Example usage
     data = [

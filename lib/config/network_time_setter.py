@@ -7,10 +7,12 @@ import urequests
 class NetworkTimeSetter:
     def __init__(self):
         self.wlan = network.WLAN(network.STA_IF)
+        print("activating WiFi...")
         self.wlan.active(True)
 
     def _connect_wifi(self, ssid, password):
         if not self.wlan.active():
+            print("Activating WiFi again...")
             self.wlan.active(True)
 
         if not self.wlan.isconnected():
@@ -67,7 +69,6 @@ class NetworkTimeSetter:
             print("Failed to get timezone offset:", e)
 
         return 0
-
 
     def set_time(self, ssid, password, timezone) -> bool:
         # Connect to Wi-Fi

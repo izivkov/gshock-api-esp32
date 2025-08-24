@@ -25,6 +25,7 @@ class DataListener:
 
     async def subscribe(self, char):
         await self.unsubscribe(char)  # Cancel old listener if exists
+        self. cleanup_tasks()
         await char.subscribe()
         self.listener_tasks[char.uuid] = asyncio.create_task(
             self.listen_for_notifications(char)
@@ -45,5 +46,10 @@ class DataListener:
                 await task
             except asyncio.CancelledError:
                 logger.info(f"Listener for {char.uuid} cancelled")
+
+    def cleanup_tasks(self):
+        to_remove = [uuid for uuid, task in self.listener_tasks.items() if task.done()]
+        for uuid in to_remove:
+            del self.listener_tasks[uuid]
     
 data_listener = DataListener()

@@ -23,26 +23,6 @@ def config(rotation=0):
         ST7789: An instance of the ST7789 display driver.
     """
 
-    # custom_rotations = (
-    #     (0x00, 170, 320, 35, 0, False),
-    #     (0x60, 320, 170, 0, 35, False),
-    #     (0xC0, 170, 320, 35, 0, False),
-    #     (0xA0, 320, 170, 0, 35, False),
-    # )
-
-    # return st7789.ST7789(
-    #     SPI(2, baudrate=40000000, sck=Pin(12), mosi=Pin(11), miso=None),
-    #     170,
-    #     320,
-    #     cs=Pin(10, Pin.OUT),
-    #     dc=Pin(13, Pin.OUT),
-    #     reset=Pin(9, Pin.OUT),
-    #     backlight=Pin(15, Pin.OUT),
-    #     custom_rotations=custom_rotations,
-    #     rotation=rotation,
-    #     color_order=st7789.BGR,
-    # )
-
     spi = SPI(
         1,
         baudrate=40_000_000,
@@ -53,7 +33,7 @@ def config(rotation=0):
         miso=None,
     )
 
-    display =  st7789.ST7789(
+    display = st7789.ST7789(
         spi,
         240, 320,                         # physical driver size
         reset=Pin(21, Pin.OUT),

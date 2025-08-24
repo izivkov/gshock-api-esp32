@@ -21,17 +21,17 @@ __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
 __license__ = "MIT"
 
-async def main():    
+async def main():        
     config_manager.load()
     
     if not config_manager.get("ssid") or not config_manager.get("password"):
         logger.error(f" {config_manager.get_instructions()}")
         led.red_on()
-        # return
+        return
 
     print(f"Local time: {time.localtime()}")
     
-    await run_time_server()
+    await gshock_server()
 
 def prompt():
     logger.info("==============================================================================================")
@@ -41,7 +41,7 @@ def prompt():
     logger.info("==============================================================================================")
     logger.info("")
 
-async def run_time_server():
+async def gshock_server():
     excluded_watches = [
         "DW-H5600", "OCW-S400", "OCW-S400SG", "OCW-T200SB",
         "ECB-30", "ECB-20", "ECB-10", "ECB-50", "ECB-60", "ECB-70"
@@ -51,8 +51,6 @@ async def run_time_server():
 
     while True:
         try:
-            gc.collect()
-            
             run_once_key(
                 "show_welcome_screen",
                 display.show_welcome_screen,
@@ -72,6 +70,9 @@ async def run_time_server():
                 logger.info("Connect attempt failed; retrying...")
                 await asyncio.sleep(1)
                 continue
+
+            gc.collect()
+            print("Free memory:", gc.mem_free())
 
             # Update store
             t = time.localtime()  # returns (year, month, mday, hour, minute, second, weekday, yearday)
@@ -104,6 +105,8 @@ async def run_time_server():
 
             if watch_info.alwaysConnected == False:
                 await connection.disconnect()
+                connection = None
+                gc.collect()
 
         except (GShockConnectionError, GShockIgnorableException) as e:
             led.set_mode(LEDController.MODE_BLINK_RED)
@@ -114,6 +117,10 @@ async def run_time_server():
             led.set_mode(LEDController.MODE_BLINK_RED)
             logger.error("Unknown error: {}".format(e))
             continue
+
+        finally:
+                # Release memory
+                gc.collect()
 
 def get_next_alarm_time(alarms):
     now = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)
@@ -193,5 +200,5 @@ async def show_display(api: GshockAPI):
     except Exception as e:
         logger.error("Got error: {}".format(e))
 
-# Start the main loop
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

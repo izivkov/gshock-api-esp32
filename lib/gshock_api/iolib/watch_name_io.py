@@ -3,7 +3,6 @@ from gshock_api.utils import clean_str, to_ascii_string, to_hex_string
 
 from gshock_api.cancelable_result import CancelableResult
 
-
 class WatchNameIO:
     result: CancelableResult = None
     connection = None

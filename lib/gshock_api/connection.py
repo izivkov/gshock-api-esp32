@@ -64,9 +64,7 @@ class Connection:
 
             # Subscribe only to the known notifiable characteristics
             for char_uuid in CasioConstants.CASIO_NOTIFY_CHARACTERISTICS:
-                gc.collect()
                 char = await service.characteristic(bluetooth.UUID(char_uuid))
-                gc.collect()
                 if char is None:
                     continue
 
@@ -107,6 +105,8 @@ class Connection:
         self.characteristics_map = await self.discover_services(self.client)
 
     async def write(self, handle, data):
+        gc.collect()
+
         uuid = self.handles_map.get(handle)
 
         if UUID(uuid) not in self.characteristics_map:
@@ -123,7 +123,7 @@ class Connection:
             await asyncio.sleep(0.1)
             await char.write(payload, response=responseType, timeout_ms=6000)
             await data_listener.smart_subscribe(char, responseType)
-
+    
         except (OSError, GattError, DeviceDisconnectedError) as err:
             logger.error(f"Connection error sending data to watch: {err}")
             raise GShockIgnorableException(err)
@@ -135,6 +135,9 @@ class Connection:
         except ValueError as err:
             logger.error(f"Value error sending data to watch: {err}")
             raise GShockIgnorableException(err)
+        
+        finally:
+            gc.collect()
 
     async def disconnect(self):
         if self.client is None:
