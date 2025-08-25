@@ -133,6 +133,46 @@ class Display:
             y += font_small.HEIGHT * scale + line_spacing
         gc.collect()
 
+    def show_message(self, message, max_line_len=20, bottom_margin=80):
+        # Split message into words
+        words = message.split()
+        lines = []
+        current_line = ""
+
+        print(f"Displaying message: {message}")
+
+        for word in words:
+            # Check if adding word exceeds max length
+            if len(current_line) + len(word) + (1 if current_line else 0) > max_line_len:
+                # Push current line and start new one
+                lines.append(current_line)
+                current_line = word
+            else:
+                # Add word to current line
+                current_line = f"{current_line} {word}".strip()
+                print(f"current_line: {current_line}")
+
+        if current_line:
+            lines.append(current_line)
+
+        # Calculate total height for text block
+        line_height = font_big.HEIGHT * 2  # upscaled 2x
+        total_height = len(lines) * line_height + (len(lines) - 1) * 4  # 4 px line spacing
+
+        # Center vertically with bottom margin respected
+        y_start = (self.height - total_height - bottom_margin) // 2
+
+        self.tft.fill(self.bg)  # Clear display with background color
+
+        # Draw each line centered horizontally and vertically spaced
+        for i, line in enumerate(lines):
+            line_width = len(line) * font_big.WIDTH * 2
+            x = (self.width - line_width) // 2
+            y = y_start + i * (line_height + 4)
+            self.tft.upscaled_text(x, y, line, self.fg, bgcolor=None, upscaling=2)
+
+        gc.collect()
+
 # Example usage
 data = [
     ("", "GW-5600"),

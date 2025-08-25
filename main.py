@@ -5,8 +5,6 @@ import gshock_server
 from lib.config.config_manager import config_manager
 from gshock_api.logger import logger
 
-
-# Combine them in a single main coroutine
 config_manager.load()
 
 if not config_manager.get("ssid") or not config_manager.get("password"):

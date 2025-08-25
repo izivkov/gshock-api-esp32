@@ -11,6 +11,7 @@ from gshock_api.exceptions import GShockConnectionError, GShockIgnorableExceptio
 from lib.config import network_time_setter
 from lib.config.config_manager import config_manager
 from lib.display.led import led, LEDController
+import lib.utils.strings as strings
 
 from lib.display.display import display
 
@@ -25,11 +26,14 @@ async def main():
     config_manager.load()
     
     if not config_manager.get("ssid") or not config_manager.get("password"):
+        display.show_message (f"""Configuration file "config.json" missing. Please create and copy to device""")
         logger.error(f" {config_manager.get_instructions()}")
         led.red_on()
+        asyncio.sleep(10)
         return
 
-    print(f"Local time: {time.localtime()}")
+    print(f"Local time: {strings.format_time(time.localtime())}")
+    display.show_message(strings.format_time(time.localtime()))
     
     await gshock_server()
 
@@ -48,6 +52,7 @@ async def gshock_server():
     ]
 
     prompt()
+    display.show_message (f"""Started...""")
 
     while True:
         try:
@@ -182,11 +187,15 @@ async def show_display(api: GshockAPI):
         auto_sync="On" if await api.get_time_adjustment() else "Off"
         print(f"Auto Sync: {auto_sync}")
 
+        reminders = await api.get_reminders()
+        reminder_title = reminders[0].get("title") if reminders else "None"
+
         data = [
         ("", short_name),
         ("Last Sync", last_sync),
-        ("Next Alarm:", alarm_str),
         ("TimeZone:", config_manager.get("timezone")),
+        ("Next Alarm:", alarm_str),
+        ("Rem:", reminder_title),
         ("Auto Sync:", auto_sync)
         ]
 
