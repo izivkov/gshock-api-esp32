@@ -8,7 +8,8 @@ import machine
 SERVICE_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef0")
 CHAR_UUID = bluetooth.UUID("abcdefab-1234-5678-1234-56789abcdef0")
 
-async def main():        
+async def main():       
+    print(f"Config Server started...") 
     await config_server()
 
 def process_full_message(json_bytes):
