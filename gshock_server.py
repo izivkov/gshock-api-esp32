@@ -22,21 +22,29 @@ __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
 __license__ = "MIT"
 
-async def main():        
-    config_manager.load()
-    
-    if not config_manager.get("ssid") or not config_manager.get("password"):
-        display.show_message (f"""Configuration file "config.json" missing. Please create and copy to device""")
-        logger.error(f" {config_manager.get_instructions()}")
-        led.red_on()
-        asyncio.sleep(10)
-        return
+async def main():     
+    try:   
+        config_manager.load()
+        
+        if not config_manager.get("ssid") or not config_manager.get("password"):
+            display.show_message (f"""Configuration file "config.json" missing. Please create and copy to device""")
+            logger.error(f" {config_manager.get_instructions()}")
+            led.red_on()
+            asyncio.sleep(3)
+            # return
 
-    print(f"Local time: {strings.format_time(time.localtime())}")
-    display.show_message(strings.format_time(time.localtime()))
-    
-    await gshock_server()
+        print(f"Local time: {strings.format_time(time.localtime())}")
 
+        display.show_message(f"Time on Server: {strings.format_time(time.localtime())}")    
+        await asyncio.sleep(3)
+        
+        await gshock_server()
+
+    except asyncio.CancelledError:
+            print("Task was cancelled, cleaning up!")
+            # perform any cleanup if needed
+            # raise  # always re-raise unless you are sure you want to swallow it
+    
 def prompt():
     logger.info("==============================================================================================")
     logger.info("Short-press lower-right button on your watch to set time...")
@@ -52,7 +60,6 @@ async def gshock_server():
     ]
 
     prompt()
-    display.show_message (f"""Started...""")
 
     while True:
         try:

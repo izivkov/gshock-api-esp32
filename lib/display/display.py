@@ -19,7 +19,6 @@ font_small_scaled = ScaledFont
 
 class Display:
     def __init__(self):
-        # Set your display dimensions and SPI pins here:
         self.tft = st7789.ST7789(
             SPI(1, baudrate=40000000, phase=1, polarity=1, sck=Pin(7), mosi=Pin(6)),
             320, 320,
@@ -139,8 +138,6 @@ class Display:
         lines = []
         current_line = ""
 
-        print(f"Displaying message: {message}")
-
         for word in words:
             # Check if adding word exceeds max length
             if len(current_line) + len(word) + (1 if current_line else 0) > max_line_len:
@@ -150,7 +147,6 @@ class Display:
             else:
                 # Add word to current line
                 current_line = f"{current_line} {word}".strip()
-                print(f"current_line: {current_line}")
 
         if current_line:
             lines.append(current_line)

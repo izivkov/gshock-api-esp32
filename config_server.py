@@ -5,11 +5,14 @@ import struct
 import ujson as json
 import machine
 
+from lib.display.display import display
+
 SERVICE_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef0")
 CHAR_UUID = bluetooth.UUID("abcdefab-1234-5678-1234-56789abcdef0")
 
 async def main():       
     print(f"Config Server started...") 
+    display.show_message (f"""Configuration mode. Start the Android app to confugure""")
     await config_server()
 
 def process_full_message(json_bytes):
@@ -35,7 +38,10 @@ def save_config(obj, filename="config.json"):
 
 async def config_server():
     ble = bluetooth.BLE()
-    ble.active(True)
+
+    if ble.active():
+        ble.active(True)
+
     ble.config(gap_name="TimeServer")
 
     service = aioble.Service(SERVICE_UUID)
