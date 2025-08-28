@@ -1,12 +1,12 @@
 import sys
 current_path = sys.path[0]
-sys.path.append(current_path + '/lib/config')
+sys.path.append(current_path + '/lib')
 
 import uasyncio as asyncio
 from machine import Pin
 import config_server
 import gshock_server
-from config_manager import config_manager
+from config.config_manager import config_manager
 
 server_task = None
 

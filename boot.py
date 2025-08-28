@@ -1,13 +1,10 @@
 import sys
 current_path = sys.path[0]
-sys.path.append(current_path + '/lib/config')
-sys.path.append(current_path + '/lib/gshock_api')
-sys.path.append(current_path + '/lib/display')
-sys.path.append(current_path + '/lib/utils')
+sys.path.append(current_path + '/lib')
 
-from config_manager import config_manager
-from network_time_setter import network_time_setter
-from logger import logger
+from config.config_manager import config_manager
+from config.network_time_setter import network_time_setter
+from gshock_api.logger import logger
 
 def set_time_on_board():
     config_manager.load()
