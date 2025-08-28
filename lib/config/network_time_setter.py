@@ -7,8 +7,6 @@ import urequests
 class NetworkTimeSetter:
     def __init__(self):
         self.wlan = network.WLAN(network.STA_IF)
-        print("activating WiFi...")
-        self.wlan.active(True)
 
     def _connect_wifi(self, ssid, password):
         if not self.wlan.active():

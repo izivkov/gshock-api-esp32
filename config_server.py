@@ -4,16 +4,26 @@ import aioble
 import struct
 import ujson as json
 import machine
-
+import sys
+import time
 from lib.display.display import display
 
+# Define constants outside of functions
 SERVICE_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef0")
 CHAR_UUID = bluetooth.UUID("abcdefab-1234-5678-1234-56789abcdef0")
 
-async def main():       
-    print(f"Config Server started...") 
-    display.show_message (f"""Configuration mode. Start the Android app to confugure""")
-    await config_server()
+def save_config(obj, filename="config.json"):
+    try:
+        with open(filename, "w") as f:
+            # Dump with indentation for pretty format
+            f.write(json.dumps(obj))
+            f.write("\n")
+        print("Config saved")
+        display.show_message("Config saved...")
+
+    except Exception as e:
+        print("Failed to save config:", e)
+
 
 def process_full_message(json_bytes):
     try:
@@ -25,59 +35,60 @@ def process_full_message(json_bytes):
 
     except ValueError as e:
         print("Invalid JSON received:", e)
-
-def save_config(obj, filename="config.json"):
-    try:
-        with open(filename, "w") as f:
-            # Dump with indentation for pretty format
-            f.write(json.dumps(obj))
-            f.write("\n")
-        print("Config saved")
-    except Exception as e:
-        print("Failed to save config:", e)
+        display.show_message("Invalid JSON received")
 
 async def config_server():
-    ble = bluetooth.BLE()
-
-    if ble.active():
+    # Initialize BLE stack and services within this coroutine
+    # This prevents race conditions with other tasks
+    try:
+        ble = bluetooth.BLE()
+        ble.active(False) # Ensure BLE stack is reset
         ble.active(True)
+        ble.config(gap_name="TimeServer")
 
-    ble.config(gap_name="TimeServer")
+        service = aioble.Service(SERVICE_UUID)
+        char = aioble.Characteristic(service, CHAR_UUID, write_no_response=True, capture=True)
+        aioble.register_services(service)
+        
+        # Add a short delay after registering services to ensure the GATT table is ready
+        await asyncio.sleep_ms(200)
 
-    service = aioble.Service(SERVICE_UUID)
-    char = aioble.Characteristic(service, CHAR_UUID, write_no_response=True, capture=True)
-
-    aioble.register_services(service)
+    except Exception as e:
+        display.show_message(f"BLE Error: {e}")
+        # Use a print to output a stack trace to the console
+        sys.print_exception(e) # this will still fail
+        print("BLE Setup failed. Exiting config_server.")
+        return
 
     while True:
         print("Advertising...")
-        conn = await aioble.advertise(
-            250_000,
-            name="TimeServer",
-            services=[SERVICE_UUID]
-        )
-
         try:
-            mtu = await conn.exchange_mtu(256)
-            print("Negotiated MTU:", mtu)
+            conn = await aioble.advertise(
+                250_000,
+                name="TimeServer",
+                services=[SERVICE_UUID]
+            )
         except Exception as e:
-            print("MTU exchange failed:", e)
+            # Handle potential advertising errors
+            print("Error during advertising:", e)
+            continue
 
         print("Central connected:", conn.device)
+        display.show_message(f"Connected to app: {conn.device}")
 
         buffer = bytearray()
         expected_len = None
 
-        while True:
+        while conn.is_connected():
             try:
+                display.show_message(f"Waiting for data...")
                 _, data = await char.written()
-                print(f"data: {data}")
+
                 if not data:
                     continue
 
                 # Always accumulate incoming data into buffer
                 buffer.extend(data)
-                print(f"Buffer length: {len(buffer)}")
 
                 # If we don't know expected message length yet and buffer has at least 4 bytes,
                 # extract the length prefix from the first 4 bytes
@@ -104,11 +115,29 @@ async def config_server():
                     # Reset expected length to wait for next message
                     expected_len = None
 
+            except asyncio.CancelledError:
+                # This could happen if the main loop tries to cancel this task
+                break
             except Exception as e:
+                # Handle connection loss or other errors gracefully
                 print("Error or disconnected:", e)
+                display.show_message(f"Disconnected: {e}")
                 break
 
         print("Central disconnected")
+        display.show_message(f"Configuration completed.")
+
+async def main():
+    print(f"Config Server started...") 
+    display.show_message(f"Configuration mode. Start the Android app to configure")
+    await config_server()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        # Add a startup delay here to ensure the system is ready
+        time.sleep(5) # A safe bet
+        asyncio.run(main())
+    except Exception as e:
+        # Catch any errors from the main entry point
+        print("Fatal error in main loop:", e)
+

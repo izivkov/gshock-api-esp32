@@ -8,10 +8,9 @@ from gshock_api.iolib.button_pressed_io import WatchButton
 from gshock_api.logger import logger
 from gshock_api.watch_info import watch_info
 from gshock_api.exceptions import GShockConnectionError, GShockIgnorableException
-from lib.config import network_time_setter
 from lib.config.config_manager import config_manager
 from lib.display.led import led, LEDController
-import lib.utils.strings as strings
+import lib.utils.utils as utils
 
 from lib.display.display import display
 
@@ -33,9 +32,9 @@ async def main():
             asyncio.sleep(3)
             # return
 
-        print(f"Local time: {strings.format_time(time.localtime())}")
+        print(f"Local time: {utils.format_time(time.localtime())}")
 
-        display.show_message(f"Time on Server: {strings.format_time(time.localtime())}")    
+        display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")    
         await asyncio.sleep(3)
         
         await gshock_server()

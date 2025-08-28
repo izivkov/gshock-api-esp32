@@ -1,7 +1,12 @@
+import sys
+current_path = sys.path[0]
+sys.path.append(current_path + '/lib/config')
+
 import uasyncio as asyncio
 from machine import Pin
 import config_server
 import gshock_server
+from config_manager import config_manager
 
 server_task = None
 
@@ -31,10 +36,21 @@ async def start_config_mode():
 
 async def main():
     global server_task
-    # Start default server
-    server_task = asyncio.create_task(gshock_server.main())
-    # Start watcher
+
+    config_manager.load()
+    
+    if not config_manager.get("ssid") or not config_manager.get("password"):
+        print("Missing config: starting config server")
+        await asyncio.sleep(10)
+        server_task = asyncio.create_task(config_server.main())
+    else:
+        print("Config found: starting gshock server")
+        server_task = asyncio.create_task(gshock_server.main())
+
+    # Always start watcher for boot button to allow mode switching on press
     watcher_task = asyncio.create_task(watch_boot_button(start_config_mode))
+
+    # Run both concurrently
     await asyncio.gather(server_task, watcher_task)
 
 asyncio.run(main())

@@ -89,7 +89,6 @@ class Display:
         )
         # Battery fill
         fill_width = int((width - 2) * max(0, min(percent, 100)) / 100)
-        print (4)
         if fill_width > 0:
             self.fill_rect_manual(x + 1, y + 1, fill_width, height - 2, self.fg)
         if fill_width < (width - 2):

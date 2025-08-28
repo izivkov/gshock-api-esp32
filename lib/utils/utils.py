@@ -6,3 +6,4 @@ def format_time(t):
     )
 
     return formatted_time
+
