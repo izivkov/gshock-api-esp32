@@ -6,10 +6,8 @@ import ujson as json
 import machine
 from lib.display.display import display
 
-
 SERVICE_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef0")
 CHAR_UUID = bluetooth.UUID("abcdefab-1234-5678-1234-56789abcdef0")
-
 
 def save_config(obj, filename="config.json"):
     try:
@@ -20,7 +18,6 @@ def save_config(obj, filename="config.json"):
         display.show_message("Config saved...")
     except Exception as e:
         print("Failed to save config:", e)
-
 
 def process_full_message(json_bytes):
     try:
@@ -121,7 +118,6 @@ async def config_server():
 
 
 async def main():
-    print("Config Server started...")
     display.show_message("Configuration mode. Start the Android app to configure")
     await config_server()
 
@@ -129,7 +125,8 @@ async def main():
 if __name__ == "__main__":
     import time
     try:
-        time.sleep(5)  # Startup delay
+        display.show_message("Starting...")
+        time.sleep(2)  # Startup delay
         asyncio.run(main())
     except Exception as e:
         print("Fatal error in main loop:", e)
