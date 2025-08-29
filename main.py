@@ -1,6 +1,6 @@
-import sys
-current_path = sys.path[0]
-sys.path.append(current_path + '/lib')
+# import sys
+# current_path = sys.path[0]
+# sys.path.append(current_path + '/lib')
 
 import uasyncio as asyncio
 from machine import Pin
