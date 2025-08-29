@@ -54,7 +54,6 @@ async def init_ble():
             print(f"Unexpected error: {e}, retrying...")
             await asyncio.sleep_ms(500)
 
-
 async def handle_connection(char, conn):
     print("Central connected:", conn.device)
     display.show_message(f"Connected to app: {conn.device}")
