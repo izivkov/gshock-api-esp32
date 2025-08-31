@@ -17,6 +17,6 @@ def set_time_on_board():
     if not time_set:
         logger.error("Failed to set time. Please check your configuration.")
     else:
-        logger.error("Time SET!")
+        logger.info("Time SET!")
 
 set_time_on_board()

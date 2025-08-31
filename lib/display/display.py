@@ -17,36 +17,68 @@ class ScaledFont:
 
 font_small_scaled = ScaledFont
 
+DISPLAY_CONFIGS = {
+    "ESP32-C6-LCD-1.47": {
+        "width": 320,
+        "height": 320,
+        "sck": 7,
+        "mosi": 6,
+        "cs": 14,
+        "dc": 15,
+        "reset": 21,
+        "backlight": 22,
+        "spi_polarity": 1,
+        "spi_phase": 1,
+    },
+    "ESP32-C6-Touch-LCD-1.47": {
+        "width": 320,
+        "height": 240,
+        "sck": 1,
+        "mosi": 2,
+        "miso": 3,
+        "cs": 14,
+        "dc": 15,
+        "reset": 22,
+        "backlight": 23,
+        "spi_polarity": 1,
+        "spi_phase": 1,
+    }
+}
+
 class Display:
-    def __init__(self):
+    def __init__(self, board_type="ESP32-C6-Touch-LCD-1.47"):
+        cfg = DISPLAY_CONFIGS[board_type]
+
         self.tft = st7789.ST7789(
-            SPI(1, baudrate=40000000, phase=1, polarity=1, sck=Pin(7), mosi=Pin(6)),
-            320, 320,
-            reset=Pin(21, Pin.OUT),
-            dc=Pin(15, Pin.OUT),
-            cs=Pin(14, Pin.OUT),
+            SPI(1, baudrate=40000000, polarity=cfg["spi_polarity"], phase=cfg["spi_phase"],
+                sck=Pin(cfg["sck"]), mosi=Pin(cfg["mosi"]), miso=Pin(cfg.get("miso")) if cfg.get("miso") else None),
+            cfg["width"], cfg["height"],
+            reset=Pin(cfg["reset"], Pin.OUT),
+            dc=Pin(cfg["dc"], Pin.OUT),
+            cs=Pin(cfg["cs"], Pin.OUT),
         )
 
-        self.tft.init(landscape=True, mirror_y=True, inversion=True)
+        # self.tft.init(landscape=True, mirror_y=True, inversion=True)
+        self.tft.init(landscape=True, mirror_x=True, mirror_y=True, inversion=False)
 
-        backlight = Pin(22, Pin.OUT)
+        backlight = Pin(cfg["backlight"], Pin.OUT)
         backlight.on()
 
-        self.fg = self.tft.color(255, 255, 255)
+        self.fg = self.to_tft_color(210, 230, 249)
         self.bg = self.tft.color(0, 0, 0)
         self.width = self.tft.width
         self.height = self.tft.height
 
-        fgcolor = self.tft.color(255,0,0)
-        bgcolor = self.tft.color(0,0,0)  
+        self.tft.fill(self.bg)  # Fill with black
 
-        self.tft.fill(bgcolor)  # Fill with black
+    def to_tft_color(self, r, g, b):
+        return self.tft.color(b, g, r)
 
     def display_data(self, data):
         self.tft.fill(self.bg)
         gc.collect()
         line_gap = 6
-        top_margin = 50
+        top_margin = 58
         left_margin = 20
         right_margin = 20
         current_y = top_margin
@@ -72,9 +104,9 @@ class Display:
         for i in range(height):
             self.tft.hline(x, x + width - 1, y + i, color)
 
-    def draw_battery_icon(self, percent, width=20, height=10, top_margin=120, right_margin=20):
+    def draw_battery_icon(self, percent, width=20, height=10, bottom_margin=50, right_margin=20):
         x = self.width - width - 3 - right_margin  
-        y = self.height - height - top_margin
+        y = self.height - height - bottom_margin
         # Battery outline
         self.tft.rect(x, y, width, height, self.fg, fill=False)
         # Battery terminal
@@ -94,15 +126,15 @@ class Display:
         if fill_width < (width - 2):
             self.fill_rect_manual(x + 1 + fill_width, y + 1, (width - 2) - fill_width, height - 2, self.bg)
 
-    def draw_temperature(self, temperature, height=10, top_margin=120, left_margin=20):
+    def draw_temperature(self, temperature, height=10, bottom_margin=50, left_margin=20):
         temp_str = "{}C".format(temperature)
         x = left_margin
-        y = self.height - height - top_margin
+        y = self.height - height - bottom_margin
         self.tft.text(x, y, temp_str, self.fg, self.bg)
 
     def show_welcome_screen(self, message, watch_name=None, last_sync=None):
         gc.collect()
-        margin_bottom = 150
+        margin_bottom = 80
         line_spacing = 4
         lines = []
         if watch_name is not None:
@@ -131,7 +163,7 @@ class Display:
             y += font_small.HEIGHT * scale + line_spacing
         gc.collect()
 
-    def show_message(self, message, max_line_len=20, bottom_margin=80):
+    def show_message(self, message, max_line_len=20, bottom_margin=20):
         # Split message into words
         words = message.split()
         lines = []
@@ -155,7 +187,7 @@ class Display:
         total_height = len(lines) * line_height + (len(lines) - 1) * 4  # 4 px line spacing
 
         # Center vertically with bottom margin respected
-        y_start = (self.height - total_height - bottom_margin) // 2
+        y_start = (self.height - total_height - bottom_margin + 20) // 2
 
         self.tft.fill(self.bg)  # Clear display with background color
 

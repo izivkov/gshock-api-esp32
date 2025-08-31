@@ -9,7 +9,7 @@ from gshock_api.logger import logger
 from gshock_api.watch_info import watch_info
 from gshock_api.exceptions import GShockConnectionError, GShockIgnorableException
 from lib.config.config_manager import config_manager
-from lib.display.led import led, LEDController
+# from lib.display.led import led, LEDController
 import lib.utils.utils as utils
 
 from lib.display.display import display
@@ -28,14 +28,15 @@ async def main():
         if not config_manager.get("ssid") or not config_manager.get("password"):
             display.show_message (f"""Configuration file "config.json" missing. Please create and copy to device""")
             logger.error(f" {config_manager.get_instructions()}")
-            led.red_on()
+            # led.red_on()
             asyncio.sleep(3)
-            return
+            # return
 
         print(f"Local time: {utils.format_time(time.localtime())}")
 
         display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")    
         await asyncio.sleep(3)
+        
         await gshock_server()
 
     except asyncio.CancelledError:
@@ -72,9 +73,9 @@ async def gshock_server():
             logger.info("Waiting for connection...")
             connection = Connection()
 
-            led.set_mode(LEDController.MODE_BLINK_GREEN)
+            # led.set_mode(LEDController.MODE_BLINK_GREEN)
             connected = await connection.connect(excluded_watches)
-            led.set_mode(LEDController.MODE_SMOOTH)
+            # led.set_mode(LEDController.MODE_SMOOTH)
 
             if not connected:
                 logger.info("Connect attempt failed; retrying...")
@@ -119,12 +120,12 @@ async def gshock_server():
                 gc.collect()
 
         except (GShockConnectionError, GShockIgnorableException) as e:
-            led.set_mode(LEDController.MODE_BLINK_RED)
+            # led.set_mode(LEDController.MODE_BLINK_RED)
             logger.error("Got error: {}".format(e))
             continue
 
         except Exception as e: # Just in case
-            led.set_mode(LEDController.MODE_BLINK_RED)
+            # led.set_mode(LEDController.MODE_BLINK_RED)
             logger.error("Unknown error: {}".format(e))
             continue
 

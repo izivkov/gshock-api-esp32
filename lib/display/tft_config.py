@@ -23,25 +23,32 @@ def config(rotation=0):
         ST7789: An instance of the ST7789 display driver.
     """
 
+    SCK_PIN = 7
+    MOSI_PIN = 6
+    CS_PIN = 14
+    DC_PIN = 15
+    RST_PIN = 21
+    BL_PIN = 23
+
     spi = SPI(
         1,
         baudrate=40_000_000,
         polarity=1,
         phase=1,
-        sck=Pin(7),
-        mosi=Pin(6),
+        sck=Pin(SCK_PIN),
+        mosi=Pin(MOSI_PIN),
         miso=None,
     )
 
     display = st7789.ST7789(
         spi,
         240, 320,                         # physical driver size
-        reset=Pin(21, Pin.OUT),
-        dc=Pin(15, Pin.OUT),
-        cs=Pin(14, Pin.OUT),
+        reset=(Pin(RST_PIN), Pin.OUT),
+        dc=Pin(DC_PIN, Pin.OUT),
+        cs=Pin(CS_PIN, Pin.OUT),
     )
 
-    backlight = PWM(Pin(22), freq=1000)
+    backlight = PWM(Pin(BL_PIN), freq=1000)
     backlight.duty_u16(65535)  # full brightness
 
     return display
