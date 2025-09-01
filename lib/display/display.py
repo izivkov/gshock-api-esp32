@@ -1,6 +1,7 @@
 from machine import Pin, SPI
 import display.st7789_ext as st7789
 import gc
+import time
 
 # If you want custom fonts, you should define their WIDTH and HEIGHT attributes.
 # For this demo, we'll use the built-in 8x8 font. You can extend as needed.
@@ -29,6 +30,11 @@ DISPLAY_CONFIGS = {
         "backlight": 22,
         "spi_polarity": 1,
         "spi_phase": 1,
+        "landscape": True,
+        "mirror_x": True,
+        "mirror_y": True,
+        "inversion": False,
+
     },
     "ESP32-C6-Touch-LCD-1.47": {
         "width": 320,
@@ -42,6 +48,10 @@ DISPLAY_CONFIGS = {
         "backlight": 23,
         "spi_polarity": 1,
         "spi_phase": 1,
+        "landscape": True,
+        "mirror_x": True,
+        "mirror_y": True,
+        "inversion": False,
     }
 }
 
@@ -58,14 +68,15 @@ class Display:
             cs=Pin(cfg["cs"], Pin.OUT),
         )
 
-        # self.tft.init(landscape=True, mirror_y=True, inversion=True)
-        self.tft.init(landscape=True, mirror_x=True, mirror_y=True, inversion=False)
+        # For some reason need to initialize twice to get it to display after a reboot.
+        self.tft.init(landscape=cfg["landscape"], mirror_x=cfg["mirror_x"], mirror_y=cfg["mirror_y"], inversion=cfg["inversion"])
+        self.tft.init(landscape=cfg["landscape"], mirror_x=cfg["mirror_x"], mirror_y=cfg["mirror_y"], inversion=cfg["inversion"])
 
         backlight = Pin(cfg["backlight"], Pin.OUT)
         backlight.on()
 
         self.fg = self.to_tft_color(210, 230, 249)
-        self.bg = self.tft.color(0, 0, 0)
+        self.bg = self.to_tft_color(0, 0, 0)
         self.width = self.tft.width
         self.height = self.tft.height
 

@@ -27,7 +27,7 @@ async def main():
         
         if not config_manager.get("ssid") or not config_manager.get("password"):
             display.show_message (f"""Configuration file "config.json" missing. Please create and copy to device""")
-            logger.error(f" {config_manager.get_instructions()}")
+            logger.error(f"config_manager_no_display: {config_manager.get_instructions()}")
             # led.red_on()
             asyncio.sleep(3)
             # return
@@ -120,12 +120,10 @@ async def gshock_server():
                 gc.collect()
 
         except (GShockConnectionError, GShockIgnorableException) as e:
-            # led.set_mode(LEDController.MODE_BLINK_RED)
             logger.error("Got error: {}".format(e))
             continue
 
         except Exception as e: # Just in case
-            # led.set_mode(LEDController.MODE_BLINK_RED)
             logger.error("Unknown error: {}".format(e))
             continue
 

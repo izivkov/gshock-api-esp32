@@ -9,7 +9,7 @@ from gshock_api.logger import logger
 from gshock_api.watch_info import watch_info
 from gshock_api.exceptions import GShockConnectionError, GShockIgnorableException
 from lib.config.config_manager import config_manager
-from lib.display.led import led, LEDController
+from lib.display.led_mock import led, LEDController
 import lib.utils.utils as utils
 
 from lib.display.display import display
@@ -22,26 +22,15 @@ __copyright__ = "Ivo Zivkov"
 __license__ = "MIT"
 
 async def main():     
-    try:   
-        config_manager.load()
-        
-        if not config_manager.get("ssid") or not config_manager.get("password"):
-            display.show_message (f"""Configuration file "config.json" missing. Please create and copy to device""")
-            logger.error(f" {config_manager.get_instructions()}")
-            led.red_on()
-            asyncio.sleep(3)
-            return
+    display.show_message (f"""Starting...""")
+    try:
+        set_server_time()
 
-        print(f"Local time: {utils.format_time(time.localtime())}")
-
-        display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")    
-        await asyncio.sleep(3)
         await gshock_server()
-
     except asyncio.CancelledError:
-            print("Task was cancelled, cleaning up!")
-            # perform any cleanup if needed
-            # raise  # always re-raise unless you are sure you want to swallow it
+        print("Task was cancelled, cleaning up!")
+        # perform any cleanup if needed
+        # raise  # always re-raise unless you are sure you want to swallow it
     
 def prompt():
     logger.info("==============================================================================================")
@@ -85,7 +74,7 @@ async def gshock_server():
             print("Free memory:", gc.mem_free())
 
             # Update store
-            t = time.localtime()  # returns (year, month, mday, hour, minute, second, weekday, yearday)
+            t = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)
             formatted_time = "{:02d}/{:02d} {:02d}:{:02d}".format(t[1], t[2], t[3], t[4])
 
             store.add("last_connected", formatted_time)
@@ -95,14 +84,14 @@ async def gshock_server():
             pressed_button = await api.get_pressed_button()
 
             # Apply fine adjustment to the time
-            # fine_adjustment_secs = args.get().fine_adjustment_secs
             fine_adjustment_secs = 0
 
             await api.set_time(offset=fine_adjustment_secs)
 
             now_tuple = time.localtime()
             now_str = "{}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(
-                now_tuple[0], now_tuple[1], now_tuple[2], now_tuple[3], now_tuple[4], now_tuple[5]
+                now_tuple[0], now_tuple[1], now_tuple[2],
+                now_tuple[3], now_tuple[4], now_tuple[5]
             )
             logger.info("Time set at {} on {}".format(now_str, watch_info.name))
 
@@ -123,14 +112,41 @@ async def gshock_server():
             logger.error("Got error: {}".format(e))
             continue
 
-        except Exception as e: # Just in case
+        except Exception as e:
             led.set_mode(LEDController.MODE_BLINK_RED)
             logger.error("Unknown error: {}".format(e))
             continue
 
         finally:
-                # Release memory
-                gc.collect()
+            # Release memory
+            gc.collect()
+
+def set_server_time():
+    try:
+        config_manager.load()
+
+        ssid = config_manager.get("ssid")
+        password = config_manager.get("password")
+        timezone = config_manager.get("timezone", "UTC")
+
+        from lib.config.network_time_setter import NetworkTimeSetter
+        network_time_setter = NetworkTimeSetter()
+        time_set = network_time_setter.set_time(ssid, password, timezone)
+        if not time_set:
+            display.show_message (f"""Failed to set time using WiFi "{ssid}". Please check config and connection.""")
+            logger.error(f"gshock_server: Failed to set time using WiFi \"{ssid}\". Please check config and connection.")
+            return False
+        else:
+            print(f"Local time after sync: {utils.format_time(time.localtime())}")
+            display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")    
+            time.sleep(2)
+            return True
+
+    except Exception as e:
+        return False
+    
+    finally:
+        network_time_setter.cleanup()
 
 def get_next_alarm_time(alarms):
     now = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)

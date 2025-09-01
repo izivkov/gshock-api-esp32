@@ -3,22 +3,34 @@ import ntptime
 import time
 import machine
 import urequests
+import gc
 
 class NetworkTimeSetter:
+    wlan = None
+    
     def __init__(self):
         self.wlan = network.WLAN(network.STA_IF)
+        time.sleep_ms(200)
 
     def _connect_wifi(self, ssid, password):
-        if not self.wlan.active():
-            print("Activating WiFi again...")
+        self.wlan.active(False)    
+        while not self.wlan.active():
             self.wlan.active(True)
+            time.sleep_ms(200)
 
         if not self.wlan.isconnected():
-            print(f"Connecting to WiFi {ssid}...")
+            print(f"Connecting to WiFi SSID: {ssid}...")
             self.wlan.connect(ssid, password)
+
+            # Wait for connection with timeout
+            timeout = 15  # seconds
+            start = time.time()
             while not self.wlan.isconnected():
-                time.sleep(0.5)
-        print("Connected:", self.wlan.ifconfig())
+                if time.time() - start > timeout:
+                    raise Exception("Failed to connect to WiFi: Timeout")
+                time.sleep(1)
+
+        print("Network config:", self.wlan.ifconfig())
 
     def is_timezone_valid(self, timezone):
         try:
@@ -104,11 +116,15 @@ class NetworkTimeSetter:
             print("Error setting time:", e)
 
         finally:
-            # Always disconnect Wi-Fi
-            import network
-            sta = network.WLAN(network.STA_IF)
-            sta.disconnect()
-            sta.active(False)
-            print("Wi-Fi disconnected")
+            # self.cleanup()
+            pass
 
-network_time_setter = NetworkTimeSetter()
+    def cleanup(self):
+        print("Cleaning up network resources...")
+        if self.wlan:
+            self.wlan.active(False)
+            self.wlan = None
+
+        gc.collect()
+
+# network_time_setter = NetworkTimeSetter()

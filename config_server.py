@@ -115,11 +115,9 @@ async def config_server():
     char = await init_ble()
     await advertise_and_handle_connections(char)
 
-
 async def main():
     display.show_message("Configuration mode. Start the Android app to configure")
     await config_server()
-
 
 if __name__ == "__main__":
     import time
