@@ -24,8 +24,9 @@ __license__ = "MIT"
 async def main():     
     display.show_message (f"""Starting...""")
     try:
+        # This should be in boot.py or main.py but the esp32 has problems with WiFi during boot.
         set_server_time()
-
+        
         await gshock_server()
     except asyncio.CancelledError:
         print("Task was cancelled, cleaning up!")
@@ -69,9 +70,6 @@ async def gshock_server():
                 logger.info("Connect attempt failed; retrying...")
                 await asyncio.sleep(1)
                 continue
-
-            gc.collect()
-            print("Free memory:", gc.mem_free())
 
             # Update store
             t = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)
@@ -137,8 +135,7 @@ def set_server_time():
             logger.error(f"gshock_server: Failed to set time using WiFi \"{ssid}\". Please check config and connection.")
             return False
         else:
-            print(f"Local time after sync: {utils.format_time(time.localtime())}")
-            display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")    
+            display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")                
             time.sleep(2)
             return True
 
