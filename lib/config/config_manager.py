@@ -60,4 +60,4 @@ class ConfigManager:
     def get(self, key, default=None):
         return self.config.get(key, default)
 
-# config_manager = ConfigManager()
+config_manager = ConfigManager()

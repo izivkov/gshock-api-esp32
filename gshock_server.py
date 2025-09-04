@@ -12,7 +12,10 @@ from lib.config.config_manager import config_manager
 from lib.display.led_mock import led, LEDController
 import lib.utils.utils as utils
 
-from lib.display.display import display
+# from lib.display.display import display
+from di import display
+from lib.display.touch import touch
+from lib.display.dim_display import DimDisplay
 
 from lib.utils.run_once import run_once_key
 from lib.utils.persistent_store import store
@@ -26,6 +29,9 @@ async def main():
     try:
         # This should be in boot.py or main.py but the esp32 has problems with WiFi during boot.
         set_server_time()
+        
+        dim_display = DimDisplay(display, touch)
+        dim_display.start()
         
         await gshock_server()
     except asyncio.CancelledError:
@@ -64,7 +70,7 @@ async def gshock_server():
 
             led.set_mode(LEDController.MODE_BLINK_GREEN)
             connected = await connection.connect(excluded_watches)
-            led.set_mode(LEDController.MODE_SMOOTH)
+            led.set_mode(LEDController.MODE_SOLID_GREEN)
 
             if not connected:
                 logger.info("Connect attempt failed; retrying...")

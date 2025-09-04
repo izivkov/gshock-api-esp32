@@ -5,6 +5,7 @@ import struct
 import ujson as json
 import machine
 from lib.display.display import display
+from lib.display.dim_display import DimDisplay
 
 SERVICE_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef0")
 CHAR_UUID = bluetooth.UUID("abcdefab-1234-5678-1234-56789abcdef0")
@@ -116,6 +117,9 @@ async def config_server():
     await advertise_and_handle_connections(char)
 
 async def main():
+    dim_display = DimDisplay(display, None) 
+    dim_display(display, None).start(touch_threshold=400)  # Adjust threshold as needed
+    e
     display.show_message("Configuration mode. Start the Android app to configure")
     await config_server()
 
