@@ -64,6 +64,8 @@ python sync.py
 
 ### 2. Configure WiFi
 
+The server needs an internet connection to get the correct time. You must therefore provide a way for it to connect to your WiFi network. Here is how to configure it:
+
 #### Manual Installation
 
 Create a `config.json` file with your WiFi credentials and timezone:
@@ -74,6 +76,9 @@ Create a `config.json` file with your WiFi credentials and timezone:
   "timezone": "Continent/City"
 }
 ```
+Make sure your timezone is in the correct format. Here is a [link to all valid timezones](http://worldtimeapi.org/api/timezone)
+
+
 Copy the file to the device:
 ```
 mpremote connect /dev/ttyACM0 fs cp config.json :config.json
