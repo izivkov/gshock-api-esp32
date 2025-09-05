@@ -11,6 +11,7 @@ from gshock_api.exceptions import GShockConnectionError, GShockIgnorableExceptio
 from lib.config.config_manager import config_manager
 from lib.display.led_mock import led, LEDController
 import lib.utils.utils as utils
+from lib.utils.periodic_task_runner import PeriodicTaskRunner
 
 # from lib.display.display import display
 from di import display
@@ -27,9 +28,11 @@ __license__ = "MIT"
 async def main():     
     display.show_message (f"""Starting...""")
     try:
-        # This should be in boot.py or main.py but the esp32 has problems with WiFi during boot.
-        set_server_time()
-        
+        time_task = PeriodicTaskRunner(set_server_time, interval_sec=86400, run_immediately=True)
+        await time_task.start(block_until_first_run=True)
+        display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")                
+        time.sleep(2)
+
         dim_display = DimDisplay(display, touch)
         dim_display.start()
         
@@ -140,8 +143,6 @@ def set_server_time():
             logger.error(f"gshock_server: Failed to set time using WiFi \"{ssid}\". Please check config and connection.")
             return False
         else:
-            display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")                
-            time.sleep(2)
             return True
 
     except Exception as e:

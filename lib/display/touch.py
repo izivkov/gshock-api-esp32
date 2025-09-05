@@ -1,8 +1,7 @@
 import machine
 import time
 
-# Based on Waveshare documentation, confirm these are the correct pins for your board.
-# Update these values if your board's schematics differ.
+# GPIO pin definitions for the touch controller
 TP_INT_PIN = 21   # GPIO for the Touch Interrupt line
 TP_RESET_PIN = 20 # GPIO for the Touch Reset line
 

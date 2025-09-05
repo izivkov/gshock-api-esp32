@@ -9,7 +9,7 @@ class DimDisplay:
     timeout_off = 30 * 60     # 30 minutes to turn off
 
     def __init__(self, display, touch):
-        self.display = display                     # The lvgl-compatible display object
+        self.display = display                     # Display object with set_brightness method
         self.touch = touch                         # Touch object or callback
         self._task = None                          # The main asyncio task
         self._dimmed = False
