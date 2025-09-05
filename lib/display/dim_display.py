@@ -28,7 +28,7 @@ class DimDisplay:
             while True:
                 await asyncio.sleep(0.1)
                 # Check for touch
-                if self.touch.read():  # Adjust threshold for your HW (TouchPad returns lower when touched)
+                if self.touch.read():
                     if self._dimmed or self._off:
                         self.display.set_brightness(100)
                         self._dimmed = False
