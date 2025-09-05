@@ -49,7 +49,7 @@ The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is e
 ### 1. Installing the Software
 
 **Download the latest firmware:**  
-**Flasing your device**: Follow the instructions [here](https://micropython.org/download/esp32/) to download and install the latest MicroPython firmare on your device. 
+Follow the instructions [here](https://micropython.org/download/esp32/) to download and install the latest MicroPython firmare on your device. 
 
 Note: On Linux, the port is typically `/dev/ttyACM0`.
 
