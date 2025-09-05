@@ -1,6 +1,6 @@
-# ESP32 G-Shock Server & Display Interface
+# ESP32 G-Shock Time Server
 
-This project provides an **ESP32-based server and display interface** for Casio G-Shock watches. It enables BLE communication, configuration, notifications, reminders, alarms, and display management for supported G-Shock models.
+This project provides an **ESP32-based** time server for Casio G-Shock watches. The ESP32 is a tiny, low-cost microcontroller with built-in WiFi and Bluetooth. This server enables your G-Shock to connect and set its correct time. In addition, it displays some information about your watch.
 
 ***
 
@@ -30,7 +30,7 @@ This project provides an **ESP32-based server and display interface** for Casio 
 
 ## Requirements
 
-- ESP32 board with ST7789 display  
+- `ESP32-C6-Touch-LCD-1.47` micro controller with a touch-enabled display.  
 - MicroPython firmware  
 - `mpremote` for file transfer  
 
@@ -39,6 +39,8 @@ This project provides an **ESP32-based server and display interface** for Casio 
 ## Hardware
 
 The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is exactly this display, because pins differ for similar displays, even from the same manufacturer. Also, the `touch` function is used to wake up the display, so make usre it is exactly the same model. You can get it from [here](https://amzn.to/4m7SIr9).
+
+![Alt Image](docs/ESP32-C6-Touch-LCD-1.47-02.jpg)
 
 ***
 
