@@ -84,7 +84,7 @@ mpremote connect /dev/ttyACM0 fs cp config.json :config.json
 
 #### Use the Android App
 
-- Download the Android APK from [here](docs/TimeServerConfigurator.apk).
+- Download the Android APK from here: [⬇️ Download Latest APK](https://github.com/izivkov/gshock-api-esp32/releases/download/v1.0.0/TimeServerConfigurator.apk).
 - If not configured, the ESP32 will boot into configuration mode. Once booted, start the Android app. You should see the red dot on the bottom-right of the app's screen turn green, confirming a successful connection to the ESP32 controller.
 - Enter your SSID and WiFi password, then press the **SUBMIT** button. This will create the configuration file on the ESP32, and the device will reboot into server mode.
 
