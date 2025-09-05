@@ -1,6 +1,3 @@
-Here is a professionally formatted `README.md` in Markdown for the ESP32 G-Shock Server project, correcting all spelling and grammar issues and ensuring clarity, consistency, and proper structure:
-
-```markdown
 # ESP32 G-Shock Server & Display Interface
 
 This project provides an **ESP32-based server and display interface** for Casio G-Shock watches. It enables BLE communication, configuration, notifications, reminders, alarms, and display management for supported G-Shock models.
@@ -148,5 +145,3 @@ Additional resources:
 (https://www.waveshare.com/wiki/ESP32-S3-Relay-6CH)  
 (https://docs.keyestudio.com/projects/KS5020/en/latest/docs/1.%20Arduino_C_Tutorial.html)  
 (https://randomnerdtutorials.com/getting-started-with-esp32/)  
-```
-This version is corrected for spelling, grammar, style, and Markdown display.
