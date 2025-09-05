@@ -1,8 +1,6 @@
-Here is a corrected and properly formatted `README.md` for your ESP32 G-Shock Server project.  
-All spelling errors, grammar issues, and section inconsistencies have been addressed, and proper Markdown syntax is used throughout.
+Here is a professionally formatted `README.md` in Markdown for the ESP32 G-Shock Server project, correcting all spelling and grammar issues and ensuring clarity, consistency, and proper structure:
 
-***
-
+```markdown
 # ESP32 G-Shock Server & Display Interface
 
 This project provides an **ESP32-based server and display interface** for Casio G-Shock watches. It enables BLE communication, configuration, notifications, reminders, alarms, and display management for supported G-Shock models.
@@ -52,14 +50,16 @@ This project provides an **ESP32-based server and display interface** for Casio 
 ### 1. Installing the Software
 
 **Download the latest firmware:**  
-Follow instructions to download the latest MicroPython firmware (.bin) file from [here](https://micropython.org/download/esp32/). The current version is **v1.26.0 (2025-08-09)**. Note that the port for Linux is typically `/dev/ttyACM0`.
+Download the latest MicroPython firmware (.bin) file from [here](https://micropython.org/download/esp32/).  
+The current version is **v1.26.0 (2025-08-09)**.  
+On Linux, the port is typically `/dev/ttyACM0`.
 
 **Install MicroPython Firmware:**  
-Follow the standard instructions for erasing flash and installing the firmware. Refer to sources at the end for detailed steps.
+Follow the standard instructions for erasing the flash and installing the firmware. Refer to the sources at the end for detailed steps.
 
 **Deploy the Server Software:**  
 Sync project files to the ESP32:
-```sh
+```
 python sync.py
 ```
 
@@ -70,31 +70,43 @@ python sync.py
 #### Manual Installation
 
 Create a `config.json` file with your WiFi credentials and timezone:
-```json
+```
 {
   "ssid": "YourWiFiSSID",
   "password": "YourWiFiPassword",
   "timezone": "Continent/City"
 }
 ```
-Copy to the device:
-```sh
+Copy the file to the device:
+```
 mpremote connect /dev/ttyACM0 fs cp config.json :config.json
 ```
 
-#### Use the Android App
+#### Using the Android App
 
-- Download the Android APK from here: [⬇️ Download Latest APK](https://github.com/izivkov/gshock-api-esp32/releases/download/v1.0.0/TimeServerConfigurator.apk).
-- If not configured, the ESP32 will boot into configuration mode. Once booted, start the Android app. You should see the red dot on the bottom-right of the app's screen turn green, confirming a successful connection to the ESP32 controller.
-- Enter your SSID and WiFi password, then press the **SUBMIT** button. This will create the configuration file on the ESP32, and the device will reboot into server mode.
+- Download the Android APK: [⬇️ Download Latest APK](https://github.com/izivkov/gshock-api-esp32/releases/download/v1.0.0/TimeServerConfigurator.apk)
+- If not configured, the ESP32 will boot into configuration mode. Once booted, start the Android app. When the red dot at the bottom-right of the app’s screen turns green, the ESP32 controller is connected.
+- Enter your SSID and WiFi password, then press **SUBMIT**. This will create the configuration file on the ESP32, and the device will reboot into server mode.
 
 ![Alt Image](docs/TimeServerConfigurator.png)
+
+> Note: In the future, the app will provide locale information such as date and time format, temperature units (C or F), and color scheme for the server. It is recommended to use the app for setup.
 
 ***
 
 ### 3. Run the Server
 
-After setup, the ESP32 will start the main server and display status.
+After setup, the ESP32 will start the main server and display the status.
+
+***
+
+### 4. Connecting Your Watch to Set the Correct Time
+
+Three ways to connect the watch to the server:
+
+1. **Automatic connection:** If your watch is set to auto-update time, it will try to connect four times per day and update its time.
+2. **Manual (time only):** For a quick time update, short-press the lower-right button on your watch. The watch will connect, update its time, and the display on the server will show the name of the last connected watch and the time of the last sync.
+3. **Manual with watch information:** Long-press the lower-left button. The watch will connect and update its time. Additionally, the server will display information such as the next alarm, next reminder, battery level, and temperature of the watch.
 
 ***
 
@@ -118,20 +130,23 @@ For more details, see the project modules:
 
 ## References
 
-[MicroPython Download](https://micropython.org/download/esp32/)  
-[MicroPython ESP32 Getting Started](https://docs.micropython.org/en/latest/esp32/tutorial/intro.html)  
-[Install MicroPython on ESP32](https://bhave.sh/micropython-install-esp32/)  
-[Flashing Firmware with esptool.py](https://randomnerdtutorials.com/flashing-micropython-firmware-esptool-py-esp32-esp8266/)  
-[Erase ESP32 Flash](https://randomnerdtutorials.com/esp32-erase-flash-memory/)  
-[Troubleshooting Erase/Flash Issues](https://github.com/orgs/micropython/discussions/13025)
+- [MicroPython Download](https://micropython.org/download/esp32/)
+- [MicroPython ESP32 Getting Started](https://docs.micropython.org/en/latest/esp32/tutorial/intro.html)
+- [Install MicroPython on ESP32](https://bhave.sh/micropython-install-esp32/)
+- [Flashing Firmware with esptool.py](https://randomnerdtutorials.com/flashing-micropython-firmware-esptool-py-esp32-esp8266/)
+- [Erase ESP32 Flash](https://randomnerdtutorials.com/esp32-erase-flash-memory/)
+- [Troubleshooting Erase/Flash Issues](https://github.com/orgs/micropython/discussions/13025)
 
-[1](https://visualgdb.com/documentation/espidf/)
-[2](https://randomnerdtutorials.com/esp32-web-server-beginners-guide/)
-[3](https://www.scribd.com/document/830747162/the-complete-esp32-projects-guide-ebook-1)
-[4](https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf)
-[5](https://docs.nordicsemi.com/bundle/ncs-2.0.2/page/zephyr/boards/xtensa/esp32/doc/index.html)
-[6](https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32/esp-hardware-design-guidelines-en-master-esp32.pdf)
-[7](https://github.com/izivkov/CasioGShockSmartSync)
-[8](https://www.waveshare.com/wiki/ESP32-S3-Relay-6CH)
-[9](https://docs.keyestudio.com/projects/KS5020/en/latest/docs/1.%20Arduino_C_Tutorial.html)
-[10](https://randomnerdtutorials.com/getting-started-with-esp32/)
+Additional resources:  
+(https://visualgdb.com/documentation/espidf/)  
+(https://randomnerdtutorials.com/esp32-web-server-beginners-guide/)  
+(https://www.scribd.com/document/830747162/the-complete-esp32-projects-guide-ebook-1)  
+(https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf)  
+(https://docs.nordicsemi.com/bundle/ncs-2.0.2/page/zephyr/boards/xtensa/esp32/doc/index.html)  
+(https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32/esp-hardware-design-guidelines-en-master-esp32.pdf)  
+(https://github.com/izivkov/CasioGShockSmartSync)  
+(https://www.waveshare.com/wiki/ESP32-S3-Relay-6CH)  
+(https://docs.keyestudio.com/projects/KS5020/en/latest/docs/1.%20Arduino_C_Tutorial.html)  
+(https://randomnerdtutorials.com/getting-started-with-esp32/)  
+```
+This version is corrected for spelling, grammar, style, and Markdown display.
