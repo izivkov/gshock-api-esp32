@@ -122,7 +122,6 @@ async def gshock_server():
             continue
 
         finally:
-            # Release memory
             gc.collect()
 
 def set_server_time():
@@ -232,6 +231,9 @@ async def show_display(api: GshockAPI):
 
     except Exception as e:
         logger.error("Got error: {}".format(e))
+
+    finally:
+        gc.collect()
 
 if __name__ == "__main__":
     asyncio.run(main())
