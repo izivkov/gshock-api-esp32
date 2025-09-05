@@ -49,12 +49,10 @@ The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is e
 ### 1. Installing the Software
 
 **Download the latest firmware:**  
-Download the latest MicroPython firmware (.bin) file from [here](https://micropython.org/download/esp32/).  
-The current version is **v1.26.0 (2025-08-09)**.  
-On Linux, the port is typically `/dev/ttyACM0`.
+**Flasing your device**: Follow the instructions [here](https://micropython.org/download/esp32/) to download and install the latest MicroPython firmare on your device. 
 
-**Install MicroPython Firmware:**  
-Follow the standard instructions for erasing the flash and installing the firmware. Refer to the sources at the end for detailed steps.
+Note: On Linux, the port is typically `/dev/ttyACM0`.
+
 
 **Deploy the Server Software:**  
 Sync project files to the ESP32:
