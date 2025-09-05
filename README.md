@@ -1,4 +1,5 @@
-Certainly! Here is your reformatted `README.md` file with clear titles, subtitles, and consistent structure.
+Here is a corrected and properly formatted `README.md` for your ESP32 G-Shock Server project.  
+All spelling errors, grammar issues, and section inconsistencies have been addressed, and proper Markdown syntax is used throughout.
 
 ***
 
@@ -22,19 +23,27 @@ This project provides an **ESP32-based server and display interface** for Casio 
 ## Project Structure
 
 - `main.py` – Main entry point for the ESP32 server  
-- `config_server.py` – BLE configuration server  
+- `config_server.py` – Configuration server used to connect to the supporting Android app and receive configuration information  
 - `gshock_server.py` / `gshock_server_no_display.py` – Main G-Shock server logic (with/without display)  
 - `lib/` – Core libraries:  
   - `display/` – Display and LED control (ST7789, fonts, icons)  
   - `config/` – Configuration management  
-  - `gshock_api/` – BLE protocol, alarms, reminders, notifications, and watch info  
+  - `gshock_api/` – Software to connect and communicate with G-Shock watches  
   - `utils/` – Utility functions and persistent storage  
+
+***
+
+## Requirements
+
+- ESP32 board with ST7789 display  
+- MicroPython firmware  
+- `mpremote` for file transfer  
 
 ***
 
 ## Hardware
 
-- ESP32 board with ST7789 display
+- ESP32 board with ST7789 display  
 
 ***
 
@@ -42,95 +51,25 @@ This project provides an **ESP32-based server and display interface** for Casio 
 
 ### 1. Installing the Software
 
-**Download the latest firmware** (.bin file) from here:  
-[https://micropython.org/download/ESP32_GENERIC_C6/](https://micropython.org/download/ESP32_GENERIC_C6/)  
-The current version is **v1.26.0 (2025-08-09)**.
+**Download the latest firmware:**  
+Follow instructions to download the latest MicroPython firmware (.bin) file from [here](https://micropython.org/download/esp32/). The current version is **v1.26.0 (2025-08-09)**. Note that the port for Linux is typically `/dev/ttyACM0`.
 
-#### Flashing and Installing MicroPython
+**Install MicroPython Firmware:**  
+Follow the standard instructions for erasing flash and installing the firmware. Refer to sources at the end for detailed steps.
 
-##### Step 1: Download the Firmware
-
-- Download the MicroPython `.bin` file for ESP32, e.g.  
-  `ESP32_GENERIC_C6-20250809-v1.26.0.bin` from the official MicroPython site.[1][2]
-
-##### Step 2: Connect ESP32 to Computer
-
-- Use a USB cable to connect your ESP32 board to your computer.[3]
-
-##### Step 3: Install esptool (Flash Utility)
-
-- Install the Python tool called `esptool` (for erasing and flashing the board):
-  - `pip install esptool`  
-  - Or: `pipx install esptool`.[3]
-
-##### Step 4: Put the ESP32 in Bootloader Mode
-
-- Most boards auto-enter flashing mode when reset.
-- Some may require you to press and hold the **BOOT/FLASH** button while resetting or plugging in the board.[4][3]
-
-##### Step 5: Erase the Flash Memory (Recommended)
-
-- Open a terminal and navigate to your `.bin` file:
-  ```
-  cd ~/Downloads
-  ```
-- Run the erase command:
-  ```
-  esptool.py --chip esp32 erase_flash
-  ```
-- If needed, specify the port, e.g. `/dev/ttyUSB0` (Linux/Mac) or `COM7` (Windows):
-  ```
-  esptool.py --chip esp32 --port COM7 erase_flash
-  ```
-- Hold the BOOT/FLASH button until erasing starts.[5][4]
-
-##### Step 6: Flash the MicroPython Firmware
-
-- Run:
-  ```
-  esptool.py --chip esp32 --port COM7 write_flash -z 0x1000 ESP32_GENERIC_C6-20250809-v1.26.0.bin
-  ```
-- Replace `COM7` with your board's serial port. Hold BOOT/FLASH until writing starts, then release.[4][3]
-
-##### Step 7: Confirm the Installation
-
-- After flashing, connect to ESP32 using:
-  - a serial terminal (PuTTY, screen, minicom)
-  - or MicroPython-specific tools (`mpremote`)
-- The REPL prompt (`>>>`) should appear. Type:
-  ```python
-  import sys
-  print(sys.implementation)
-  ```
-- Outputs “micropython” and version number.[3]
+**Deploy the Server Software:**  
+Sync project files to the ESP32:
+```sh
+python sync.py
+```
 
 ***
 
-## Troubleshooting Tips
+### 2. Configure WiFi
 
-- If errors occur during erasing or flashing, repeat the steps, verify the COM port, and ensure the BOOT/FLASH button is properly pressed.[6]
-- For multiple serial devices, specify the exact port.[3]
+#### Manual Installation
 
-***
-
-## MicroPython Installation Summary Table
-
-| Step                | Command/Action                                                        | Details                           |
-|---------------------|----------------------------------------------------------------------|-----------------------------------|
-| Download firmware   | Get .bin file                                                        | Official site [1]             |
-| Install esptool     | `pip install esptool`                                                | Or use pipx [3]               |
-| Connect ESP32       | USB cable                                                            |                                   |
-| Erase flash         | `esptool.py --chip esp32 erase_flash`                                | Use port if needed                |
-| Flash firmware      | `esptool.py --chip esp32 --port COM7 write_flash -z 0x1000 <bin>`    | Specify your port                 |
-| Test connection     | Open serial terminal, look for REPL                                  |                                   |
-
-***
-
-## Configuration & Deployment
-
-### 1. Configure WiFi
-
-Create a `config.json` file with WiFi credentials and timezone:
+Create a `config.json` file with your WiFi credentials and timezone:
 ```json
 {
   "ssid": "YourWiFiSSID",
@@ -138,29 +77,22 @@ Create a `config.json` file with WiFi credentials and timezone:
   "timezone": "Continent/City"
 }
 ```
-Copy to device:
+Copy to the device:
 ```sh
 mpremote connect /dev/ttyACM0 fs cp config.json :config.json
 ```
 
-### 2. Deploy Code
+#### Use the Android App
 
-Sync project files to the ESP32:
-```sh
-python sync.py
-```
-
-### 3. Run the Server
-
-After setup, the ESP32 will start the main server and display status, alarms, and notifications.
+- Download the Android APK from [here]().
+- If not configured, the ESP32 will boot into configuration mode. Once booted, start the Android app. You should see the red dot on the bottom-right of the app's screen turn green, confirming a successful connection to the ESP32 controller.
+- Enter your SSID and WiFi password, then press the **SUBMIT** button. This will create the configuration file on the ESP32, and the device will reboot into server mode.
 
 ***
 
-## Requirements
+### 3. Run the Server
 
-- ESP32 board with ST7789 display
-- MicroPython firmware
-- `mpremote` for file transfer
+After setup, the ESP32 will start the main server and display status.
 
 ***
 
@@ -171,16 +103,33 @@ Copyright © Ivo Zivkov
 
 ***
 
-For more details, see the source files:  
+## Source Files
+
+For more details, see the project modules:  
 - `gshock_server.py`  
 - `main.py`  
 - `display.py`  
 - `gshock_api.py`  
-- `config_manager.py`
+- `config_manager.py`  
 
-[1](https://micropython.org/download/esp32/)
-[2](https://docs.micropython.org/en/latest/esp32/tutorial/intro.html)
-[3](https://bhave.sh/micropython-install-esp32/)
-[4](https://randomnerdtutorials.com/flashing-micropython-firmware-esptool-py-esp32-esp8266/)
-[5](https://randomnerdtutorials.com/esp32-erase-flash-memory/)
-[6](https://github.com/orgs/micropython/discussions/13025)
+***
+
+## References
+
+[MicroPython Download](https://micropython.org/download/esp32/)  
+[MicroPython ESP32 Getting Started](https://docs.micropython.org/en/latest/esp32/tutorial/intro.html)  
+[Install MicroPython on ESP32](https://bhave.sh/micropython-install-esp32/)  
+[Flashing Firmware with esptool.py](https://randomnerdtutorials.com/flashing-micropython-firmware-esptool-py-esp32-esp8266/)  
+[Erase ESP32 Flash](https://randomnerdtutorials.com/esp32-erase-flash-memory/)  
+[Troubleshooting Erase/Flash Issues](https://github.com/orgs/micropython/discussions/13025)
+
+[1](https://visualgdb.com/documentation/espidf/)
+[2](https://randomnerdtutorials.com/esp32-web-server-beginners-guide/)
+[3](https://www.scribd.com/document/830747162/the-complete-esp32-projects-guide-ebook-1)
+[4](https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf)
+[5](https://docs.nordicsemi.com/bundle/ncs-2.0.2/page/zephyr/boards/xtensa/esp32/doc/index.html)
+[6](https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32/esp-hardware-design-guidelines-en-master-esp32.pdf)
+[7](https://github.com/izivkov/CasioGShockSmartSync)
+[8](https://www.waveshare.com/wiki/ESP32-S3-Relay-6CH)
+[9](https://docs.keyestudio.com/projects/KS5020/en/latest/docs/1.%20Arduino_C_Tutorial.html)
+[10](https://randomnerdtutorials.com/getting-started-with-esp32/)
