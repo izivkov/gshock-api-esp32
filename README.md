@@ -1,5 +1,3 @@
-Collecting workspace information# G-Shock Smart Sync ESP32 Project
-
 This project provides an ESP32-based server and display interface for Casio G-Shock watches. It enables BLE communication, configuration, notifications, reminders, alarms, and display management for supported G-Shock models.
 
 ## Features
