@@ -38,7 +38,7 @@ This project provides an **ESP32-based server and display interface** for Casio 
 
 ## Hardware
 
-- ESP32 board with ST7789 display  
+The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is exactly this display, because pins differ for similar displays, even from the same manufacturer. Also, the `touch` function is used to wake up the display, so make usre it is exactly the same model. You can get it from [here](https://amzn.to/4m7SIr9).
 
 ***
 
