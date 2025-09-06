@@ -117,9 +117,6 @@ async def config_server():
     await advertise_and_handle_connections(char)
 
 async def main():
-    dim_display = DimDisplay(display, None) 
-    dim_display(display, None).start(touch_threshold=400)  # Adjust threshold as needed
-    e
     display.show_message("Configuration mode. Start the Android app to configure")
     await config_server()
 

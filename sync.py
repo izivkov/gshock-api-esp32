@@ -2,17 +2,15 @@ import os
 import subprocess
 import sys
 
-
 # ---------------- Configuration ----------------
 LOCAL_FOLDER = "."        # project root
 ESP_ROOT = "/"            # ESP32 root
-ESP_PORT = "/dev/ttyACM0"
-
 
 # Files/folders to ignore
 IGNORE = {".git", ".vscode", "__pycache__", ".DS_Store"}
-EXTENSIONS = {".py"}  # only copy .py files
+EXTENSIONS = {".py", ".mpy"}  # only copy .py files
 
+subprocess.run(["mpremote", "fs", "mkdir", "lib"])
 
 # ---------------- Helper Functions ----------------
 def list_local_files(directory):
@@ -33,7 +31,7 @@ def list_local_files(directory):
 
 def list_esp_files():
     """Return list of files on ESP32 (flattened)."""
-    cmd = ["mpremote", "connect", ESP_PORT, "fs", "ls", "-r", ESP_ROOT]
+    cmd = ["mpremote", "fs", "ls", "-r", ESP_ROOT]
     raw = subprocess.check_output(cmd).decode().splitlines()
     files = []
     for line in raw:
@@ -64,7 +62,7 @@ def delete_extra_files(local_files, esp_files):
             continue
         if f_norm not in local_set:
             print(f"Deleting extra file on ESP32: {f_norm}")
-            subprocess.run(["mpremote", "connect", ESP_PORT, "fs", "rm", f_norm])
+            subprocess.run(["mpremote", "fs", "rm", f_norm])
 
 
 def delete_extra_files_dry_run(local_files, esp_files, dry_run=True):
@@ -76,7 +74,7 @@ def delete_extra_files_dry_run(local_files, esp_files, dry_run=True):
         if f_norm not in local_set:
             print(f"[Dry-run] Would delete: {f_norm}" if dry_run else f"Deleting: {f_norm}")
             if not dry_run:
-                subprocess.run(["mpremote", "connect", ESP_PORT, "fs", "rm", f_norm])
+                subprocess.run(["mpremote", "fs", "rm", f_norm])
 
 
 def copy_file(local_file):
@@ -85,11 +83,11 @@ def copy_file(local_file):
     remote_dir = os.path.dirname(remote_path)
     # create directory if needed
     if remote_dir != "/":
-        subprocess.run(["mpremote", "connect", ESP_PORT, "fs", "mkdir", remote_dir])
+        subprocess.run(["mpremote", "fs", "mkdir", remote_dir])
     # copy file
     print(f"Copying {local_file} → {remote_path}")
     subprocess.run([
-        "mpremote", "connect", ESP_PORT, "fs", "cp",
+        "mpremote", "fs", "cp",
         local_file, ":" + remote_path
     ])
 
