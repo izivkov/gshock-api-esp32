@@ -49,13 +49,13 @@ The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is e
 ### 1. Installing the Software
 
 **Download the latest firmware:**  
-Follow the instructions [here](https://micropython.org/download/esp32/) to download and install the latest MicroPython firmare on your device. 
+Follow the instructions [here](https://micropython.org/download/ESP32_GENERIC_C6/) to download and install the latest MicroPython firmare on your device. 
 
-Note: On Linux, the port is typically `/dev/ttyACM0`.
+> Note: On Linux, the port is typically `/dev/ttyACM0`.
 
 
 **Deploy the Server Software:**  
-Sync project files to the ESP32:
+Copy project files to the ESP32:
 ```
 python sync.py
 ```
@@ -84,9 +84,11 @@ Copy the file to the device:
 mpremote connect /dev/ttyACM0 fs cp config.json :config.json
 ```
 
+Reset or Power OFF/ON the device.
+
 #### Using the Android App
 
-- Download the Android APK: [⬇️ Download Latest APK](https://github.com/izivkov/gshock-api-esp32/releases/download/v1.0.0/TimeServerConfigurator.apk)
+- Download and install the Android APK on your phone: [⬇️ Download Latest APK](https://github.com/izivkov/gshock-api-esp32/releases/download/v1.0.0/TimeServerConfigurator.apk)
 - If not configured, the ESP32 will boot into configuration mode. Once booted, start the Android app. When the red dot at the bottom-right of the app’s screen turns green, the ESP32 controller is connected. (You can also put the server in configuration mode at any time by pressing the BOOT button on the device).
 - Enter your SSID and WiFi password, then press **SUBMIT**. This will create the configuration file on the ESP32, and the device will reboot into server mode.
 
