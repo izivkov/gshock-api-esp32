@@ -1,30 +1,24 @@
 # ESP32 G-Shock Time Server
 
+<p>
+  <img src="https://img.shields.io/badge/Platform-ESP32-blue.svg" alt="Platform: ESP32" />
+  <img src="https://img.shields.io/badge/Display-ST7789-green.svg" alt="Display: ST7789" />
+  <img src="https://img.shields.io/badge/Language-MicroPython-yellow.svg" alt="Language: MicroPython" />
+  <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License: MIT" />
+  <img src="https://img.shields.io/badge/Status-Active-success.svg" alt="Status: Active" />
+</p>
+
 This project provides an **ESP32-based** time server for Casio G-Shock watches. The ESP32 is a tiny, low-cost microcontroller with built-in WiFi and Bluetooth. This server enables your G-Shock to connect and set its correct time. In addition, it displays some information about your watch.
+
+Just like your G-Shock itself, it’s designed to be set-and-forget. Just start the server once—it will run reliably for months with no user intervention.
 
 ***
 
 ## Features
 
-- **BLE server** for configuration and communication  
-- **Synchronization** of time, alarms, reminders, and notifications  
+- **BLE Time server** for setting your G-Shock's correct time
 - **Touch and display support** (ST7789 LCD)  
 - **Battery and temperature display**  
-- **Persistent configuration storage**  
-- **Utilities** for file sync and device management  
-
-***
-
-## Project Structure
-
-- `main.py` – Main entry point for the ESP32 server  
-- `config_server.py` – Configuration server used to connect to the supporting Android app and receive configuration information  
-- `gshock_server.py` / `gshock_server_no_display.py` – Main G-Shock server logic (with/without display)  
-- `lib/` – Core libraries:  
-  - `display/` – Display and LED control (ST7789, fonts, icons)  
-  - `config/` – Configuration management  
-  - `gshock_api/` – Software to connect and communicate with G-Shock watches  
-  - `utils/` – Utility functions and persistent storage  
 
 ***
 
@@ -48,11 +42,23 @@ The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is e
 
 ### 1. Installing the Software
 
+## Server Software Structure
+
+- `main.py` – Main entry point for the ESP32 server  
+- `config_server.py` – Configuration server used to connect to the supporting Android app and receive configuration information  
+- `gshock_server.py` / `gshock_server_no_display.py` – Main G-Shock server logic (with/without display)  
+- `lib/` – Core libraries:  
+  - `display/` – Display and LED control (ST7789, fonts, icons)  
+  - `config/` – Configuration management  
+  - `gshock_api/` – Software to connect and communicate with G-Shock watches  
+  - `utils/` – Utility functions and persistent storage  
+
+***
+
 **Download the latest firmware:**  
 Follow the instructions [here](https://micropython.org/download/ESP32_GENERIC_C6/) to download and install the latest MicroPython firmare on your device. 
 
 > Note: On Linux, the port is typically `/dev/ttyACM0`.
-
 
 **Deploy the Server Software:**  
 Copy project files to the ESP32:
@@ -104,13 +110,15 @@ After setup, the ESP32 will start the main server and display the status.
 
 ***
 
-### 4. Connecting Your Watch to Set the Correct Time
+### 4. Operation
 
 Three ways to connect the watch to the server:
 
 1. **Automatic connection:** If your watch is set to auto-update time, it will try to connect four times per day and update its time.
 2. **Manual (time only):** For a quick time update, short-press the lower-right button on your watch. The watch will connect, update its time, and the display on the server will show the name of the last connected watch and the time of the last sync.
 3. **Manual with watch information:** Long-press the lower-left button. The watch will connect and update its time. Additionally, the server will display information such as the next alarm, next reminder, battery level, and temperature of the watch.
+
+The ESP32 display will automatically dim after 5 minutes and turn off completely after 30 minutes. Tap the screen to wake it and show the display again.
 
 ***
 
