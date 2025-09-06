@@ -95,7 +95,7 @@ Reset or Power OFF/ON the device.
 
 #### Using the Android App
 
-- Download and install the Android APK on your phone: [⬇️ Download Latest APK](https://github.com/izivkov/gshock-api-esp32/releases/download/v1.0.0/TimeServerConfigurator.apk), [GitHub](https://github.com/izivkov/TimeServerConfigurator).
+- Download and install the Android APK on your phone: [⬇️ Download Latest APK](https://github.com/izivkov/gshock-api-esp32/releases/download/v1.0.0/TimeServerConfigurator.apk). You can find sources here: [GitHub](https://github.com/izivkov/TimeServerConfigurator).
 - If not configured, the ESP32 will boot into configuration mode. Once booted, start the Android app. When the red dot at the bottom-right of the app’s screen turns green, the ESP32 controller is connected. (You can also put the server in configuration mode at any time by pressing the BOOT button on the device).
 - Enter your SSID and WiFi password, then press **SUBMIT**. This will create the configuration file on the ESP32, and the device will reboot into server mode.
 
