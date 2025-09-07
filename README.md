@@ -74,7 +74,7 @@ python sync.py
 
 The server needs an internet connection to get the correct time. You must therefore provide a way for it to connect to your WiFi network. Here is how to configure it:
 
-#### Manual Installation
+#### Method 1: Manual Installation
 
 Create a `config.json` file with your WiFi credentials and timezone:
 ```
@@ -93,9 +93,9 @@ mpremote connect /dev/ttyACM0 fs cp config.json :config.json
 
 Reset or Power OFF/ON the device.
 
-#### Using the Android App
+#### Method 2: Using the Android App
 
-- Download and install the Android APK on your phone: [⬇️ Download Latest APK](https://github.com/izivkov/gshock-api-esp32/releases/download/v1.0.0/TimeServerConfigurator.apk). You can find sources [here](https://github.com/izivkov/TimeServerConfigurator).
+- Alternatively, download and install the Android APK on your phone: [⬇️ Download Latest APK](https://github.com/izivkov/gshock-api-esp32/releases/download/v1.0.0/TimeServerConfigurator.apk). You can find sources [here](https://github.com/izivkov/TimeServerConfigurator).
 - If not configured, the ESP32 will boot into configuration mode. Once booted, start the Android app. When the red dot at the bottom-right of the app’s screen turns green, the ESP32 controller is connected. (You can also put the server in configuration mode at any time by pressing the BOOT button on the device).
 - Enter your SSID and WiFi password, then press **SUBMIT**. This will create the configuration file on the ESP32, and the device will reboot into server mode.
 
