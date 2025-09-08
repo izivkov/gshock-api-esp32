@@ -34,7 +34,7 @@ Just like your G-Shock itself, it’s designed to be set-and-forget. Just start 
 
 ## Hardware
 
-The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is exactly this display, because pins differ for similar displays, even from the same manufacturer. Also, the `touch` function is used to wake up the display, so make usre it is exactly the same model. You can get it from [here](https://amzn.to/4m7SIr9).
+The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is exactly this display, because pins differ for similar displays, even from the same manufacturer. Also, the `touch` function is used to wake up the display, so make usre it is exactly the same model. You can get it from [here](https://amzn.to/4m7SIr9) (sponsored).
 
 ![Alt Image](docs/ESP32-C6-Touch-LCD-1.47-02.jpg)
 
@@ -93,7 +93,7 @@ mpremote connect /dev/ttyACM0 fs cp config.json :config.json
 
 Reset or Power OFF/ON the device.
 
-#### Method 2: Using the Android App
+#### Method 2: Using the Android App (recommended)
 
 - Alternatively, download and install the Android APK on your phone: [⬇️ Download Latest APK](https://github.com/izivkov/gshock-api-esp32/releases/download/v1.0.0/TimeServerConfigurator.apk). You can find sources [here](https://github.com/izivkov/TimeServerConfigurator).
 - If not configured, the ESP32 will boot into configuration mode. Once booted, start the Android app. When the red dot at the bottom-right of the app’s screen turns green, the ESP32 controller is connected. (You can also put the server in configuration mode at any time by pressing the BOOT button on the device).
