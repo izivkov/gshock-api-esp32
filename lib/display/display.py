@@ -89,11 +89,40 @@ class Display:
         # Foreground and background colors
         self.fg = self.to_tft_color(210, 230, 249)
         self.bg = self.to_tft_color(0, 0, 0)
+
         self.width = self.tft.width
         self.height = self.tft.height
 
         # Fill display with background color
         self.tft.fill(self.bg)
+
+    def set_colors(self, fg, bg):
+        """
+        Set foreground and background colors.
+        Colors are RGB tuples (0-255).
+        """
+        self.fg = self.to_tft_color(*fg)
+        self.bg = self.to_tft_color(*bg)
+
+    def hex_to_rgb_old(self, hex_color):
+        hex_color = hex_color.lstrip('#')  # Remove '#' if present
+        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    
+    def hex_to_rgb(self, hex_color: str):
+        """Convert hex color (#RRGGBB or #AARRGGBB) to (R, G, B)."""
+        hex_color = hex_color.lstrip('#')
+        
+        # If alpha is included (#AARRGGBB), ignore it
+        if len(hex_color) == 8:
+            hex_color = hex_color[2:]
+        elif len(hex_color) != 6:
+            raise ValueError("Hex color must be in #RRGGBB or #AARRGGBB format")
+        
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        
+        return (r, g, b)
 
     def to_tft_color(self, r, g, b):
         """
@@ -183,12 +212,15 @@ class Display:
         finally:
             gc.collect()
 
-    def draw_temperature(self, temperature, height=10, bottom_margin=50, left_margin=20):
+    def draw_temperature(self, temperature, temperature_unit, height=10, bottom_margin=50, left_margin=20):
         """
         Draw temperature value at bottom left.
         """
         try:
-            temp_str = "{}C".format(temperature)
+            if temperature_unit == "F":
+                temp_str = "{}F".format(round(temperature + 32 * 9 / 5))
+            else:   
+                temp_str = "{}C".format(temperature)
             x = left_margin
             y = self.height - height - bottom_margin
             self.tft.text(x, y, temp_str, self.fg, self.bg)

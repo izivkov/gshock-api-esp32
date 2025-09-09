@@ -28,22 +28,37 @@ __license__ = "MIT"
 async def main():     
     display.show_message (f"""Starting...""")
     try:
-        time_task = PeriodicTaskRunner(set_server_time, interval_sec=86400, run_immediately=True)
-        await time_task.start(block_until_first_run=True)
-
-        display.show_message(f"Time on Server: {utils.format_time(time.localtime()}")                
-
-        time.sleep(2)
-
-        dim_display = DimDisplay(display, touch)
-        dim_display.start()
-        
+        # await start_time_setter()
+        # await start_dimmer()
         await gshock_server()
     except asyncio.CancelledError:
         print("Task was cancelled, cleaning up!")
         # perform any cleanup if needed
         # raise  # always re-raise unless you are sure you want to swallow it
     
+async def start_time_setter():
+    time_task = PeriodicTaskRunner(set_server_time, interval_sec=86400, run_immediately=True)
+    await time_task.start(block_until_first_run=True)
+
+    display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")
+    gc.collect()
+    time.sleep(2)
+
+async def start_dimmer():
+    dim_display = DimDisplay(display, touch)
+    dim_display.start()
+    gc.collect
+
+def set_colors():
+    display_bg_color = config_manager.get("background_color", 0x000000)
+    display_fg_color = config_manager.get("foreground_color", 0xD6E6F9)
+    print(f"Display colors: bg={display_bg_color}, fg={display_fg_color}")
+    fg = display.hex_to_rgb(display_fg_color)
+    bg = display.hex_to_rgb(display_bg_color)
+    print(f"bg={bg}, fg={fg}")
+    display.set_colors(fg, bg)
+    gc.collect
+
 def prompt():
     logger.info("==============================================================================================")
     logger.info("Short-press lower-right button on your watch to set time...")
@@ -59,6 +74,10 @@ async def gshock_server():
     ]
 
     config_manager.load()
+    
+    set_colors()
+    await start_time_setter()
+    await start_dimmer()
 
     prompt()
 
@@ -226,7 +245,7 @@ async def show_display(api: GshockAPI):
 
         display.display_data(data)
         display.draw_battery_icon(percent=battery)
-        display.draw_temperature(temperature=temperature)
+        display.draw_temperature(temperature=temperature, temperature_unit=config_manager.get("temperature_unit", "C"))
 
     except Exception as e:
         logger.error("Got error: {}".format(e))
