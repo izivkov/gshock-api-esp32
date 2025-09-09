@@ -52,10 +52,8 @@ async def start_dimmer():
 def set_colors():
     display_bg_color = config_manager.get("background_color", 0x000000)
     display_fg_color = config_manager.get("foreground_color", 0xD6E6F9)
-    print(f"Display colors: bg={display_bg_color}, fg={display_fg_color}")
     fg = display.hex_to_rgb(display_fg_color)
     bg = display.hex_to_rgb(display_bg_color)
-    print(f"bg={bg}, fg={fg}")
     display.set_colors(fg, bg)
     gc.collect
 
@@ -75,8 +73,8 @@ async def gshock_server():
 
     config_manager.load()
     
+    await start_time_setter()    
     set_colors()
-    await start_time_setter()
     await start_dimmer()
 
     prompt()
