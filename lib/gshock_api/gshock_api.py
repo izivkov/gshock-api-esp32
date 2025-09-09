@@ -316,49 +316,6 @@ class GshockAPI:
         message = f"""{{"action": "SET_TIME_ADJUSTMENT", "timeAdjustment": "{time_adjustement}", "minutesAfterHour": "{minutes_after_hour}" }}"""
         await self.connection.sendMessage(message)
 
-    async def get_basic_settings(self):
-        """Get settings from the watch. Example:
-
-        ```
-        settings_local = await api.get_basic_settings()
-        ```
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        settings: a list of `Settings`
-        """
-
-        result = await message_dispatcher.SettingsIO.request(self.connection)
-        return await result
-
-    async def set_settings(self, settings):
-        """Set settings to the watch. Populate a [Settings] and call this function. Example:
-        ```
-        settings_local["button_tone"] = True
-        settings_local["language"] = "Engish"
-        settings_local["time_format"] = "12h"
-
-        await api.set_settings(settings_local)
-
-        ```
-
-        Parameters
-        ----------
-        settings: a list of `Settings`
-
-        Returns
-        -------
-        None
-        """
-        setting_json = json.dumps(settings)
-        await self.connection.sendMessage(
-            """{"action": "SET_SETTINGS", "value": """ + setting_json + """ }"""
-        )
-
     async def get_reminders(self):
         """Gets the current reminders (events) from the watch. Up to 5 events are supported.
 
