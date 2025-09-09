@@ -8,7 +8,7 @@ ESP_ROOT = "/"            # ESP32 root
 
 # Files/folders to ignore
 IGNORE = {".git", ".vscode", "__pycache__", ".DS_Store"}
-EXTENSIONS = {".py", ".mpy"}  # only copy .py files
+EXTENSIONS = {".py", ".mpy", ".json"}  # only copy these files
 
 subprocess.run(["mpremote", "fs", "mkdir", "lib"])
 

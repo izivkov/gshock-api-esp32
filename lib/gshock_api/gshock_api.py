@@ -5,7 +5,6 @@ import json
 # You must port or recreate these for MicroPython environment:
 from gshock_api.iolib.dst_watch_state_io import DtsState
 from gshock_api.iolib.button_pressed_io import WatchButton
-from gshock_api.iolib.app_notification_io import AppNotificationIO
 from gshock_api import message_dispatcher
 from gshock_api.utils import to_hex_string, to_compact_string
 from gshock_api.alarms import alarms_inst
@@ -161,9 +160,6 @@ class GshockAPI:
 
         for item in array_of_dst_watch_state[: watch_info.dstCount]:
             await self.read_and_write(item["function"], item["state"])
-
-    async def send_app_notification (self, hex_str):
-        await self.connection.write(0xD, hex_str)
 
     async def read_write_dst_for_world_cities(self):
         array_of_get_dst_for_world_cities = [
@@ -450,12 +446,4 @@ class GshockAPI:
 
         result = await message_dispatcher.AppInfoIO.request(self.connection)
         return await result
-
-    async def send_app_notification (self, notification):
-        encoded_buffer = AppNotificationIO.encode_notification_packet(notification)
-        encrypted_buffer = AppNotificationIO.xor_encode_buffer(encoded_buffer)
-        await self.connection.write(0xD, encrypted_buffer)
-
-# Note: replace all logging calls with 'print' or minimal logger.
-# Ensure your async calls and message_dispatcher methods are ported or stubbed for MicroPython.
 

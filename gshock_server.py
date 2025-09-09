@@ -13,7 +13,6 @@ from lib.display.led_mock import led, LEDController
 import lib.utils.utils as utils
 from lib.utils.periodic_task_runner import PeriodicTaskRunner
 
-# from lib.display.display import display
 from di import display
 from lib.display.touch import touch
 from lib.display.dim_display import DimDisplay
@@ -27,7 +26,17 @@ __license__ = "MIT"
 
 async def main():     
     try:
-        # display.show_message("Starting G-Shock Server...")
+        await asyncio.sleep(1)  # Give some time for any pending tasks to complete
+        gc.collect()
+
+        config_manager.load()
+        set_colors()
+
+        display.show_message("Starting...")
+
+        await start_time_setter()
+        await start_dimmer()
+
         await gshock_server()
 
     except asyncio.CancelledError:
@@ -39,7 +48,7 @@ async def start_time_setter():
     time_task = PeriodicTaskRunner(set_server_time, interval_sec=86400, run_immediately=True)
     await time_task.start(block_until_first_run=True)
 
-    # display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")
+    display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")
     gc.collect()
     time.sleep(2)
 
@@ -49,11 +58,13 @@ async def start_dimmer():
     gc.collect()
 
 def set_colors():
-    gc.collect()
-    display_bg_color = config_manager.get("background_color", "#000000")
-    display_fg_color = config_manager.get("foreground_color", "#D6E6F9")
-    fg = display.hex_to_rgb(display_fg_color)
-    bg = display.hex_to_rgb(display_bg_color)
+    display_fg_color = config_manager.get("foreground_color", "15130857")
+    display_bg_color = config_manager.get("background_color", "1315352")
+
+    print(f"display_fg_color: {display_fg_color}, display_bg_color: {display_bg_color}")
+
+    fg = display.decimal_to_rgb(int(display_fg_color))
+    bg = display.decimal_to_rgb(int(display_bg_color))
     display.set_colors(fg, bg)
     gc.collect()
 
@@ -72,12 +83,6 @@ async def gshock_server():
     ]
     
     prompt()
-
-    config_manager.load()
-
-    await start_time_setter()
-    # set_colors()
-    # await start_dimmer()
 
     while True:
         try:
@@ -110,7 +115,11 @@ async def gshock_server():
             store.add("last_connected", formatted_time)
             store.add("watch_name", watch_info.name)
 
+            gc.collect()
+            print(f"Before creating GshockAPI: free: {gc.mem_free()}, allocated: {gc.mem_alloc()}!")
             api = GshockAPI(connection)
+            print(f"Aftercreating GshockAPI: free: {gc.mem_free()}, allocated: {gc.mem_alloc()}!")
+
             pressed_button = await api.get_pressed_button()
 
             # Apply fine adjustment to the time
