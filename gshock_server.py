@@ -26,7 +26,6 @@ __license__ = "MIT"
 
 async def main():     
     try:
-        await asyncio.sleep(1)  # Give some time for any pending tasks to complete
         gc.collect()
 
         config_manager.load()
@@ -91,7 +90,7 @@ async def gshock_server():
                 display.show_welcome_screen,
                 "Waiting for connection...",
                 watch_name=store.get("watch_name", None),
-                last_sync=store.get("last_connected", None),
+                last_sync=store.get("last_connected", "Unknown"),
             )
 
             logger.info("Waiting for connection...")
@@ -131,6 +130,7 @@ async def gshock_server():
 
             if pressed_button == WatchButton.LOWER_LEFT:
                 await show_display(api)
+                pass
             else:
                 display.show_welcome_screen("Waiting for connection...",
                                             watch_name=watch_info.name,
@@ -236,7 +236,6 @@ async def show_display(api: GshockAPI):
         last_sync = f"{utils.format_month_day(t, dateformat)} {utils.format_time(t, timeformat)}"
 
         auto_sync="On" if await api.get_time_adjustment() else "Off"
-        print(f"Auto Sync: {auto_sync}")
 
         reminders = await api.get_reminders()
         reminder_title = reminders[0].get("title") if reminders else "None"

@@ -9,11 +9,17 @@ from gshock_api.logger import logger
 
 CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 
-
 class TimeAdjustmentIO:
     result: CancelableResult = None
     connection = None
     original_value = None
+
+    @staticmethod
+    def send_to_watch(message):
+        # write assumed synchronous in MicroPython BLE
+        TimeAdjustmentIO.connection.write(
+            0x000C, bytearray([CHARACTERISTICS["TIME_ADJUSTMENT"]])
+        )
 
     @staticmethod
     async def request(connection):

@@ -17,7 +17,6 @@ class Alarm:
         self.enabled = enabled
         self.has_hourly_chime = has_hourly_chime
 
-
 class Alarms:
     alarms = []
 
@@ -74,7 +73,6 @@ class Alarms:
 
 alarms_inst = Alarms()
 
-
 class AlarmDecoder:
     def to_json(self, command: str):
         json_response = {}
@@ -85,10 +83,9 @@ class AlarmDecoder:
             int_array.pop(0)
             alarms.append(self.create_json_alarm(int_array))
             json_response["ALARMS"] = alarms
+            
         elif int_array[0] == CHARACTERISTICS["CASIO_SETTING_FOR_ALM2"]:
             int_array.pop(0)
-
-            # replacement to above 2 lines
             alarms = []
             # split int_array into 4 subarrays
             subarr1 = int_array[: len(int_array) // 4]
@@ -101,14 +98,13 @@ class AlarmDecoder:
             alarms.append(self.create_json_alarm(subarr2))
             alarms.append(self.create_json_alarm(subarr3))
             alarms.append(self.create_json_alarm(subarr4))
-            # end replacement
 
             json_response["ALARMS"] = alarms
         else:
             logger.warn("Unhandled Command {}".format(command))
 
         return json_response
-
+    
     def create_json_alarm(self, int_array):
         alarm = Alarm(
             int_array[2],
@@ -127,6 +123,5 @@ class AlarmDecoder:
                 "minute": int(alarm.minute),
             }
         )
-
 
 alarm_decoder = AlarmDecoder()

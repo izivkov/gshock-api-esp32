@@ -1,5 +1,5 @@
 import json
-import time
+import utime as time
 
 class EventDate:
     def __init__(self, year: int, month: str, day: int):
@@ -30,7 +30,6 @@ class RepeatPeriod:
     def __init__(self, period_duration):
         self.period_duration = period_duration
 
-
 day_of_week = (
     "MONDAY",
     "TUESDAY",
@@ -55,9 +54,6 @@ month = [
     "DECEMBER",
 ]
 
-import utime
-
-
 def create_event_date(time_ms, zone=None):
     # Determine offset in seconds
     zone_offset_sec = 0
@@ -76,7 +72,7 @@ def create_event_date(time_ms, zone=None):
 
     # Convert ms to seconds and apply zone offset
     t_sec = int(time_ms // 1000) + zone_offset_sec
-    year, month, mday, _, _, _, _, _ = utime.localtime(t_sec)
+    year, month, mday, _, _, _, _, _ = time.localtime(t_sec)
     return EventDate(year, month, mday)
 
 class Event:

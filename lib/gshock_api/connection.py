@@ -49,8 +49,7 @@ class Connection:
                             logger.info("Found CASIO device:", adv.name(),
                                 "at", _format_addr(adv.device.addr))
                             
-                            watch_info.set_name_and_model(adv.name()) 
-                            
+                            watch_info.set_name_and_model(adv.name())                            
                             found = adv.device
                             break
 

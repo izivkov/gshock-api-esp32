@@ -33,10 +33,6 @@ class ButtonPressedIO:
         connection.write(0x000C, bytearray([CHARACTERISTICS["CASIO_BLE_FEATURES"]]))
 
     @staticmethod
-    async def send_to_watch_set(data):
-        await ButtonPressedIO.connection.write(0x000E, data)
-
-    @staticmethod
     def on_received(data):
         def button_pressed_callback(data):
             """

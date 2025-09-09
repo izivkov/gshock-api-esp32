@@ -25,15 +25,14 @@ CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 class MessageDispatcher:
     watch_senders = {
         "GET_ALARMS": AlarmsIO.send_to_watch,
-        "SET_ALARMS": AlarmsIO.send_to_watch_set,
-        "GET_SETTINGS": SettingsIO.send_to_watch,
-        "GET_TIMER": TimerIO.send_to_watch,
+        "GET_TIME_ADJUSTMENT": TimeAdjustmentIO.send_to_watch,
         "SET_TIME": TimeIO.send_to_watch_set,
     }
 
     data_received_messages = {
         CHARACTERISTICS["CASIO_SETTING_FOR_ALM"]: AlarmsIO.on_received,
         CHARACTERISTICS["CASIO_SETTING_FOR_ALM2"]: AlarmsIO.on_received,
+        CHARACTERISTICS["CASIO_TIMER"]: TimerIO.on_received,
         CHARACTERISTICS["CASIO_WATCH_NAME"]: WatchNameIO.on_received,
         CHARACTERISTICS["CASIO_DST_SETTING"]: DstForWorldCitiesIO.on_received,
         CHARACTERISTICS["CASIO_REMINDER_TIME"]: EventsIO.on_received,
@@ -43,6 +42,7 @@ class MessageDispatcher:
         CHARACTERISTICS["CASIO_WATCH_CONDITION"]: WatchConditionIO.on_received,
         CHARACTERISTICS["CASIO_APP_INFORMATION"]: AppInfoIO.on_received,
         CHARACTERISTICS["CASIO_BLE_FEATURES"]: ButtonPressedIO.on_received,
+        CHARACTERISTICS["CASIO_SETTING_FOR_BASIC"]: SettingsIO.on_received,
         CHARACTERISTICS["CASIO_SETTING_FOR_BLE"]: TimeAdjustmentIO.on_received,
         CHARACTERISTICS["ERROR"]: ErrorIO.on_received,
         CHARACTERISTICS["UNKNOWN"]: UnknownIO.on_received,

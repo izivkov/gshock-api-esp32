@@ -201,9 +201,6 @@ class GshockAPI:
         None
         """
 
-        # if current_time == None:
-        #     current_time = time.time()
-
         await self.initialize_for_setting_time()
         await self._set_time(current_time, offset)
         current_time = None
@@ -230,57 +227,6 @@ class GshockAPI:
         result = await message_dispatcher.AlarmsIO.request(self.connection)
         return result
 
-    async def set_alarms(self, alarms):
-        """Sets alarms to the watch. Up to 5 alarms are supported on the watch.
-
-        Parameters
-        ----------
-        alarms: List of `Alarm`
-
-        Returns
-        -------
-        None
-        """
-        if not alarms:
-            self.logger.debug("Alarm model not initialised! Cannot set alarm")
-            return
-
-        alarms_str = json.dumps(alarms)
-        set_action_cmd = '{{"action":"SET_ALARMS", "value":{} }}'.format(alarms_str)
-        await self.connection.sendMessage(set_action_cmd)
-
-    async def get_timer(self):
-        """Get Timer value in seconds.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        timer_value: Integer, the timer number in seconds as an Int. E.g.: 180 means the timer is set for 3 minutes.
-        """
-        return await self._get_timer()
-
-    async def _get_timer(self):
-        result = await message_dispatcher.TimerIO.request(self.connection)
-        return await result
-
-    async def set_timer(self, timerValue):
-        """Set Timer value in seconds.
-
-        Parameters
-        ----------
-        Timer number of seconds as an Int.  E.g.: 180 means the timer will be set for 3 minutes.
-
-        Returns
-        -------
-        None
-        """
-        await self.connection.sendMessage(
-            """{"action": "SET_TIMER", "value": """ + str(timerValue) + """ }"""
-        )
-
     async def get_watch_condition(self):
         result = await message_dispatcher.WatchConditionIO.request(self.connection)
         return await result
@@ -298,23 +244,6 @@ class GshockAPI:
         """
         result = await message_dispatcher.TimeAdjustmentIO.request(self.connection)
         return await result
-
-    async def set_time_adjustment(
-        self, time_adjustement: bool, minutes_after_hour: int
-    ):
-        """Sets auto-tame adjustment for the watch
-
-        Parameters
-        ----------
-        time_adjustement: bool, True if time-adjustement is set
-        minutes_after_hour: int, minutes after hour
-
-        Returns
-        -------
-        None
-        """
-        message = f"""{{"action": "SET_TIME_ADJUSTMENT", "timeAdjustment": "{time_adjustement}", "minutesAfterHour": "{minutes_after_hour}" }}"""
-        await self.connection.sendMessage(message)
 
     async def get_reminders(self):
         """Gets the current reminders (events) from the watch. Up to 5 events are supported.
@@ -352,40 +281,6 @@ class GshockAPI:
             self.connection, event_number
         )
         return await result
-
-    async def set_reminders(self, events: list):
-        """Sets events (reminders) to the watch. Up to 5 events are supported.
-
-        Parameters
-        ----------
-        events: list of `Event`
-
-        Returns
-        -------
-        None
-        """
-        if not events:
-            return
-
-        def to_json(events: list):
-            events_json = json.loads("[]")
-            for event in events:
-                event_json = event  # json.loads(json.dumps(event.__dict__))
-                events_json.append(event_json)
-
-            return events_json
-
-        def get_enabled_events(events: list):
-            enabled_events = [event for event in events if event["time"]["enabled"]]
-            return enabled_events  # to_json(enabled_events)
-
-        enabled = get_enabled_events(events)
-
-        await self.connection.sendMessage(
-            """{{\"action\": \"SET_REMINDERS\", \"value\": {}}}""".format(
-                json.dumps(enabled)
-            )
-        )
 
     async def get_app_info(self):
         """Gets and internally sets app info to the watch.

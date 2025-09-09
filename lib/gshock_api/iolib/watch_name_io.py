@@ -21,7 +21,3 @@ class WatchNameIO:
         ascii_str = to_ascii_string(hex_str, 1)
         clean_data = clean_str(ascii_str)
         WatchNameIO.result.set_result(clean_data)
-
-    @staticmethod
-    async def send_to_watch():
-        pass

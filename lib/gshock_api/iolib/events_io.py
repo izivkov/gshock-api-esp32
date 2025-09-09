@@ -8,8 +8,6 @@ from gshock_api.utils import (
     clean_str,
     dec_to_hex,
     to_ascii_string,
-    to_byte_array,
-    to_compact_string,
     to_hex_string,
     to_int_array,
 )
