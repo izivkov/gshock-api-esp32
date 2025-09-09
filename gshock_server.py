@@ -26,11 +26,10 @@ __copyright__ = "Ivo Zivkov"
 __license__ = "MIT"
 
 async def main():     
-    display.show_message (f"""Starting...""")
     try:
-        # await start_time_setter()
-        # await start_dimmer()
+        # display.show_message("Starting G-Shock Server...")
         await gshock_server()
+
     except asyncio.CancelledError:
         print("Task was cancelled, cleaning up!")
         # perform any cleanup if needed
@@ -40,22 +39,23 @@ async def start_time_setter():
     time_task = PeriodicTaskRunner(set_server_time, interval_sec=86400, run_immediately=True)
     await time_task.start(block_until_first_run=True)
 
-    display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")
+    # display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")
     gc.collect()
     time.sleep(2)
 
 async def start_dimmer():
     dim_display = DimDisplay(display, touch)
     dim_display.start()
-    gc.collect
+    gc.collect()
 
 def set_colors():
-    display_bg_color = config_manager.get("background_color", 0x000000)
-    display_fg_color = config_manager.get("foreground_color", 0xD6E6F9)
+    gc.collect()
+    display_bg_color = config_manager.get("background_color", "#000000")
+    display_fg_color = config_manager.get("foreground_color", "#D6E6F9")
     fg = display.hex_to_rgb(display_fg_color)
     bg = display.hex_to_rgb(display_bg_color)
     display.set_colors(fg, bg)
-    gc.collect
+    gc.collect()
 
 def prompt():
     logger.info("==============================================================================================")
@@ -70,14 +70,14 @@ async def gshock_server():
         "DW-H5600", "OCW-S400", "OCW-S400SG", "OCW-T200SB",
         "ECB-30", "ECB-20", "ECB-10", "ECB-50", "ECB-60", "ECB-70"
     ]
+    
+    prompt()
 
     config_manager.load()
-    
-    await start_time_setter()    
-    set_colors()
-    await start_dimmer()
 
-    prompt()
+    await start_time_setter()
+    # set_colors()
+    # await start_dimmer()
 
     while True:
         try:

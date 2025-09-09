@@ -96,33 +96,40 @@ class Display:
         # Fill display with background color
         self.tft.fill(self.bg)
 
-    def set_colors(self, fg, bg):
-        """
-        Set foreground and background colors.
-        Colors are RGB tuples (0-255).
-        """
-        self.fg = self.to_tft_color(*fg)
-        self.bg = self.to_tft_color(*bg)
-
-    def hex_to_rgb_old(self, hex_color):
-        hex_color = hex_color.lstrip('#')  # Remove '#' if present
-        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    # def set_colors(self, fg, bg):
+    #     """
+    #     Set foreground and background colors.
+    #     Colors are RGB tuples (0-255).
+    #     """
+    #     self.fg = self.to_tft_color(*fg)
+    #     self.bg = self.to_tft_color(*bg)
     
-    def hex_to_rgb(self, hex_color: str):
-        """Convert hex color (#RRGGBB or #AARRGGBB) to (R, G, B)."""
-        hex_color = hex_color.lstrip('#')
+    # def hex_to_rgb(self, hex_color):
+    #     # Verify format: must be "#RRGGBB" or "#AARRGGBB"
+    #     if not isinstance(hex_color, str):
+    #         raise TypeError("hex_color must be a string")
         
-        # If alpha is included (#AARRGGBB), ignore it
-        if len(hex_color) == 8:
-            hex_color = hex_color[2:]
-        elif len(hex_color) != 6:
-            raise ValueError("Hex color must be in #RRGGBB or #AARRGGBB format")
-        
-        r = int(hex_color[0:2], 16)
-        g = int(hex_color[2:4], 16)
-        b = int(hex_color[4:6], 16)
-        
-        return (r, g, b)
+    #     if not hex_color.startswith("#"):
+    #         raise ValueError("hex_color must start with '#'")
+
+    #     if len(hex_color) not in (7, 9):
+    #         raise ValueError("hex_color must be in #RRGGBB or #AARRGGBB format")
+
+    #     # Check that all remaining characters are valid hex digits
+    #     for c in hex_color[1:]:
+    #         if c not in "0123456789abcdefABCDEF":
+    #             raise ValueError("hex_color contains invalid characters")
+
+    #     # Handle optional alpha
+    #     hex_body = hex_color[1:]
+    #     if len(hex_body) == 8:  # Strip alpha
+    #         hex_body = hex_body[2:]
+
+    #     r = int(hex_body[0:2], 16)
+    #     g = int(hex_body[2:4], 16)
+    #     b = int(hex_body[4:6], 16)
+
+    #     return (r, g, b)
 
     def to_tft_color(self, r, g, b):
         """
