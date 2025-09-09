@@ -28,20 +28,35 @@ __license__ = "MIT"
 async def main():     
     display.show_message (f"""Starting...""")
     try:
-        time_task = PeriodicTaskRunner(set_server_time, interval_sec=86400, run_immediately=True)
-        await time_task.start(block_until_first_run=True)
-        display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")                
-        time.sleep(2)
-
-        dim_display = DimDisplay(display, touch)
-        dim_display.start()
-        
+        # await start_time_setter()
+        # await start_dimmer()
         await gshock_server()
     except asyncio.CancelledError:
         print("Task was cancelled, cleaning up!")
         # perform any cleanup if needed
         # raise  # always re-raise unless you are sure you want to swallow it
     
+async def start_time_setter():
+    time_task = PeriodicTaskRunner(set_server_time, interval_sec=86400, run_immediately=True)
+    await time_task.start(block_until_first_run=True)
+
+    display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")
+    gc.collect()
+    time.sleep(2)
+
+async def start_dimmer():
+    dim_display = DimDisplay(display, touch)
+    dim_display.start()
+    gc.collect
+
+def set_colors():
+    display_bg_color = config_manager.get("background_color", 0x000000)
+    display_fg_color = config_manager.get("foreground_color", 0xD6E6F9)
+    fg = display.hex_to_rgb(display_fg_color)
+    bg = display.hex_to_rgb(display_bg_color)
+    display.set_colors(fg, bg)
+    gc.collect
+
 def prompt():
     logger.info("==============================================================================================")
     logger.info("Short-press lower-right button on your watch to set time...")
@@ -55,6 +70,12 @@ async def gshock_server():
         "DW-H5600", "OCW-S400", "OCW-S400SG", "OCW-T200SB",
         "ECB-30", "ECB-20", "ECB-10", "ECB-50", "ECB-60", "ECB-70"
     ]
+
+    config_manager.load()
+    
+    await start_time_setter()    
+    set_colors()
+    await start_dimmer()
 
     prompt()
 
@@ -82,7 +103,9 @@ async def gshock_server():
 
             # Update store
             t = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)
-            formatted_time = "{:02d}/{:02d} {:02d}:{:02d}".format(t[1], t[2], t[3], t[4])
+            date_fmt = config_manager.get("dateformat", "MM/DD")
+            time_fmt = config_manager.get("timeformat", "24H")
+            formatted_time = f'{utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}'
 
             store.add("last_connected", formatted_time)
             store.add("watch_name", watch_info.name)
@@ -95,12 +118,7 @@ async def gshock_server():
 
             await api.set_time(offset=fine_adjustment_secs)
 
-            now_tuple = time.localtime()
-            now_str = "{}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(
-                now_tuple[0], now_tuple[1], now_tuple[2],
-                now_tuple[3], now_tuple[4], now_tuple[5]
-            )
-            logger.info("Time set at {} on {}".format(now_str, watch_info.name))
+            logger.info(f"Time set at {utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}")
 
             if pressed_button == WatchButton.LOWER_LEFT:
                 await show_display(api)
@@ -129,8 +147,6 @@ async def gshock_server():
 
 def set_server_time():
     try:
-        config_manager.load()
-
         ssid = config_manager.get("ssid")
         password = config_manager.get("password")
         timezone = config_manager.get("timezone", "UTC")
@@ -206,7 +222,9 @@ async def show_display(api: GshockAPI):
         short_name = ' '.join(name.strip().split()[1:])
 
         t = time.localtime()
-        last_sync = "{:02}/{:02} {:02}:{:02}".format(t[1], t[2], t[3], t[4])
+        timeformat = config_manager.get("timeformat", "24H")
+        dateformat = config_manager.get("dateformat", "MM/DD")
+        last_sync = f"{utils.format_month_day(t, dateformat)} {utils.format_time(t, timeformat)}"
 
         auto_sync="On" if await api.get_time_adjustment() else "Off"
         print(f"Auto Sync: {auto_sync}")
@@ -225,7 +243,7 @@ async def show_display(api: GshockAPI):
 
         display.display_data(data)
         display.draw_battery_icon(percent=battery)
-        display.draw_temperature(temperature=temperature)
+        display.draw_temperature(temperature=temperature, temperature_unit=config_manager.get("temperature_unit", "C"))
 
     except Exception as e:
         logger.error("Got error: {}".format(e))
