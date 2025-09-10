@@ -101,7 +101,7 @@ Reset or Power OFF/ON the device.
 
 ![Alt Image](docs/TimeServerConfigurator.png)
 
-> Note: In the future, the app will provide locale information such as date and time format, temperature units (C or F), and color scheme for the server. It is recommended to use the app for setup.
+> Note: The app also provides locale information such as date and time format, temperature units (C or F), and color scheme for the server. It is recommended to use the app for setup.
 
 ***
 
