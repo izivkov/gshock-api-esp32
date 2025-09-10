@@ -3,7 +3,6 @@ import json
 
 from gshock_api.logger import logger
 from gshock_api.casio_constants import CasioConstants
-from gshock_api.iolib.app_info_io import AppInfoIO
 from gshock_api.iolib.dst_watch_state_io import DstWatchStateIO
 from gshock_api.iolib.world_cities_io import WorldCitiesIO
 from gshock_api.iolib.dst_for_world_cities_io import DstForWorldCitiesIO
@@ -32,7 +31,6 @@ class MessageDispatcher:
     data_received_messages = {
         CHARACTERISTICS["CASIO_SETTING_FOR_ALM"]: AlarmsIO.on_received,
         CHARACTERISTICS["CASIO_SETTING_FOR_ALM2"]: AlarmsIO.on_received,
-        CHARACTERISTICS["CASIO_TIMER"]: TimerIO.on_received,
         CHARACTERISTICS["CASIO_WATCH_NAME"]: WatchNameIO.on_received,
         CHARACTERISTICS["CASIO_DST_SETTING"]: DstForWorldCitiesIO.on_received,
         CHARACTERISTICS["CASIO_REMINDER_TIME"]: EventsIO.on_received,
@@ -40,7 +38,6 @@ class MessageDispatcher:
         CHARACTERISTICS["CASIO_WORLD_CITIES"]: WorldCitiesIO.on_received,
         CHARACTERISTICS["CASIO_DST_WATCH_STATE"]: DstWatchStateIO.on_received,
         CHARACTERISTICS["CASIO_WATCH_CONDITION"]: WatchConditionIO.on_received,
-        CHARACTERISTICS["CASIO_APP_INFORMATION"]: AppInfoIO.on_received,
         CHARACTERISTICS["CASIO_BLE_FEATURES"]: ButtonPressedIO.on_received,
         CHARACTERISTICS["CASIO_SETTING_FOR_BASIC"]: SettingsIO.on_received,
         CHARACTERISTICS["CASIO_SETTING_FOR_BLE"]: TimeAdjustmentIO.on_received,

@@ -282,20 +282,3 @@ class GshockAPI:
         )
         return await result
 
-    async def get_app_info(self):
-        """Gets and internally sets app info to the watch.
-            This is needed to re-enable lower-right button after the watch has been reset or BLE has been cleared.
-            Call this function after each time the connection has been established.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        app_info: String
-        """
-
-        result = await message_dispatcher.AppInfoIO.request(self.connection)
-        return await result
-
