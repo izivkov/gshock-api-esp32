@@ -10,6 +10,7 @@ from gshock_api.utils import to_casio_cmd, to_hex_string
 from gshock_api.watch_info import watch_info
 from gshock_api.data_listener import data_listener
 from gshock_api import message_dispatcher
+from gshock_api.watch_filter import WatchFilter
 import gc
 
 class Connection:
@@ -23,6 +24,7 @@ class Connection:
         self._discovered = False
 
     async def connect(self, excluded_watches=[]) -> bool:
+
         def _format_addr(addr_bytes):
             """Convert BLE address bytes to string format."""
             return ':'.join(f"{b:02X}" for b in addr_bytes)
@@ -35,8 +37,12 @@ class Connection:
 
             if adv.device:
                 addr_str = _format_addr(adv.device.addr)
-                if addr_str in excluded_watches:
+                short_name = ' '.join(adv.name().strip().split()[1:])
+                watch_filter  = WatchFilter(time_constrained_watches = excluded_watches)
+                if not watch_filter.connection_filter(short_name):
                     return False
+
+            watch_filter.update_connection_time(watch_name=short_name)
 
             return True
 

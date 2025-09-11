@@ -76,7 +76,8 @@ def prompt():
     logger.info("")
 
 async def gshock_server():
-    excluded_watches = [
+
+    always_connected_watches = [
         "DW-H5600", "OCW-S400", "OCW-S400SG", "OCW-T200SB",
         "ECB-30", "ECB-20", "ECB-10", "ECB-50", "ECB-60", "ECB-70"
     ]
@@ -97,7 +98,7 @@ async def gshock_server():
             connection = Connection()
 
             led.set_mode(LEDController.MODE_BLINK_GREEN)
-            connected = await connection.connect(excluded_watches)
+            connected = await connection.connect(excluded_watches=always_connected_watches)
             led.set_mode(LEDController.MODE_SOLID_GREEN)
 
             if not connected:
@@ -115,9 +116,7 @@ async def gshock_server():
             store.add("watch_name", watch_info.name)
 
             gc.collect()
-            print(f"Before creating GshockAPI: free: {gc.mem_free()}, allocated: {gc.mem_alloc()}!")
             api = GshockAPI(connection)
-            print(f"Aftercreating GshockAPI: free: {gc.mem_free()}, allocated: {gc.mem_alloc()}!")
 
             pressed_button = await api.get_pressed_button()
 

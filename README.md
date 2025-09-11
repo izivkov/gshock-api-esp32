@@ -123,6 +123,14 @@ The ESP32 display will automatically dim after 5 minutes and turn off completely
 
 ***
 
+### Troubleshooting
+
+If you see nothing on the screen, or the device keeps rebooting, run the server manually and look at the output for any problems:
+
+```
+mpremote run gshock_server.py
+```
+
 ## License
 
 MIT License  
