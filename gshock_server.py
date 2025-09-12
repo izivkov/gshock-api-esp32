@@ -9,16 +9,11 @@ from gshock_api.logger import logger
 from gshock_api.watch_info import watch_info
 from gshock_api.exceptions import GShockConnectionError, GShockIgnorableException
 from lib.config.config_manager import config_manager
-from lib.display.led_mock import led, LEDController
 import lib.utils.utils as utils
-from lib.utils.periodic_task_runner import PeriodicTaskRunner
-
 from di import display
-from lib.display.touch import touch
-from lib.display.dim_display import DimDisplay
-
 from lib.utils.run_once import run_once_key
 from lib.utils.persistent_store import store
+from watch_filter import watch_filter
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
@@ -26,16 +21,6 @@ __license__ = "MIT"
 
 async def main():     
     try:
-        gc.collect()
-
-        config_manager.load()
-        set_colors()
-
-        display.show_message("Starting...")
-
-        await start_time_setter()
-        await start_dimmer()
-
         await gshock_server()
 
     except asyncio.CancelledError:
@@ -43,30 +28,6 @@ async def main():
         # perform any cleanup if needed
         # raise  # always re-raise unless you are sure you want to swallow it
     
-async def start_time_setter():
-    time_task = PeriodicTaskRunner(set_server_time, interval_sec=86400, run_immediately=True)
-    await time_task.start(block_until_first_run=True)
-
-    display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")
-    gc.collect()
-    time.sleep(2)
-
-async def start_dimmer():
-    dim_display = DimDisplay(display, touch)
-    dim_display.start()
-    gc.collect()
-
-def set_colors():
-    display_fg_color = config_manager.get("foreground_color", "15130857")
-    display_bg_color = config_manager.get("background_color", "1315352")
-
-    print(f"display_fg_color: {display_fg_color}, display_bg_color: {display_bg_color}")
-
-    fg = display.decimal_to_rgb(int(display_fg_color))
-    bg = display.decimal_to_rgb(int(display_bg_color))
-    display.set_colors(fg, bg)
-    gc.collect()
-
 def prompt():
     logger.info("==============================================================================================")
     logger.info("Short-press lower-right button on your watch to set time...")
@@ -76,11 +37,6 @@ def prompt():
     logger.info("")
 
 async def gshock_server():
-
-    always_connected_watches = [
-        "DW-H5600", "OCW-S400", "OCW-S400SG", "OCW-T200SB",
-        "ECB-30", "ECB-20", "ECB-10", "ECB-50", "ECB-60", "ECB-70"
-    ]
     
     prompt()
 
@@ -97,9 +53,7 @@ async def gshock_server():
             logger.info("Waiting for connection...")
             connection = Connection()
 
-            led.set_mode(LEDController.MODE_BLINK_GREEN)
-            connected = await connection.connect(excluded_watches=always_connected_watches)
-            led.set_mode(LEDController.MODE_SOLID_GREEN)
+            connected = await connection.connect(watch_filter.connection_filter)
 
             if not connected:
                 logger.info("Connect attempt failed; retrying...")
@@ -117,7 +71,6 @@ async def gshock_server():
 
             gc.collect()
             api = GshockAPI(connection)
-
             pressed_button = await api.get_pressed_button()
 
             # Apply fine adjustment to the time
@@ -141,39 +94,15 @@ async def gshock_server():
                 gc.collect()
 
         except (GShockConnectionError, GShockIgnorableException) as e:
-            led.set_mode(LEDController.MODE_BLINK_RED)
             logger.error("Got error: {}".format(e))
             continue
 
         except Exception as e:
-            led.set_mode(LEDController.MODE_BLINK_RED)
             logger.error("Unknown error: {}".format(e))
             continue
 
         finally:
             gc.collect()
-
-def set_server_time():
-    try:
-        ssid = config_manager.get("ssid")
-        password = config_manager.get("password")
-        timezone = config_manager.get("timezone", "UTC")
-
-        from lib.config.network_time_setter import NetworkTimeSetter
-        network_time_setter = NetworkTimeSetter()
-        time_set = network_time_setter.set_time(ssid, password, timezone)
-        if not time_set:
-            display.show_message (f"""Failed to set time using WiFi "{ssid}". Please check config and connection.""")
-            logger.error(f"gshock_server: Failed to set time using WiFi \"{ssid}\". Please check config and connection.")
-            return False
-        else:
-            return True
-
-    except Exception as e:
-        return False
-    
-    finally:
-        network_time_setter.cleanup()
 
 def get_next_alarm_time(alarms):
     now = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)

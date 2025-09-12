@@ -10,7 +10,6 @@ from gshock_api.utils import to_casio_cmd, to_hex_string
 from gshock_api.watch_info import watch_info
 from gshock_api.data_listener import data_listener
 from gshock_api import message_dispatcher
-from gshock_api.watch_filter import WatchFilter
 import gc
 
 class Connection:
@@ -23,27 +22,25 @@ class Connection:
         self._discovery_lock = asyncio.Lock()
         self._discovered = False
 
-    async def connect(self, excluded_watches=[]) -> bool:
+    async def connect(self, watch_filter=None) -> bool:
+        # Remove non-printable ASCII characters
+        def remove_non_printable(s):
+            return ''.join(c for c in s if 32 <= ord(c) <= 126)
 
+        # Format BLE address as string
         def _format_addr(addr_bytes):
-            """Convert BLE address bytes to string format."""
-            return ':'.join(f"{b:02X}" for b in addr_bytes)
+            return ':'.join('%02X' % b for b in addr_bytes)
 
-        def _is_target_device(adv, excluded_watches):
-            """Return True if advertisement matches CASIO and is not excluded."""
-            name = (adv.name() or "").upper()
-            if not name.startswith("CASIO"):
+        # Check if advertisement matches the desired device and passes filter
+        def _is_target_device(adv):
+            name = adv.name()
+            if not name:
                 return False
-
-            if adv.device:
-                addr_str = _format_addr(adv.device.addr)
-                short_name = ' '.join(adv.name().strip().split()[1:])
-                watch_filter  = WatchFilter(time_constrained_watches = excluded_watches)
-                if not watch_filter.connection_filter(short_name):
-                    return False
-
-            watch_filter.update_connection_time(watch_name=short_name)
-
+            name = remove_non_printable(name).upper()
+            if not name.startswith('CASIO'):
+                return False
+            if watch_filter and not watch_filter(name):
+                return False
             return True
 
         try:
@@ -51,35 +48,36 @@ class Connection:
             while not found:
                 async with aioble.scan(5000) as scanner:
                     async for adv in scanner:
-                        if _is_target_device(adv, excluded_watches):
-                            logger.info("Found CASIO device:", adv.name(),
-                                "at", _format_addr(adv.device.addr))
-                            
-                            watch_info.set_name_and_model(adv.name())                            
+                        if not adv:
+                            continue
+                        if _is_target_device(adv):
+                            logger.info(
+                                "Found CASIO device:", adv.name(),
+                                "at", _format_addr(adv.device.addr)
+                            )
+                            watch_info.set_name_and_model(adv.name())
                             found = adv.device
                             break
-
                 if not found:
-                    await asyncio.sleep(1)  # Delay between scans
+                    await asyncio.sleep(1)
 
             self.device = found
             self.client = await found.connect()
 
             service = await self.client.service(bluetooth.UUID(CasioConstants.CASIO_MAIN_SERVICE_UUID))
 
-            # Subscribe only to the known notifiable characteristics
+            # Subscribe to known notifiable characteristics
             for char_uuid in CasioConstants.CASIO_NOTIFY_CHARACTERISTICS:
                 char = await service.characteristic(bluetooth.UUID(char_uuid))
                 if char is None:
                     continue
-
                 await data_listener.subscribe(char)
 
             await self.init_characteristics_map()
             return True
 
         except Exception as e:
-            logger.error(f"Failed to connect to CASIO device: {e}")
+            logger.error("Failed to connect to CASIO device: %s" % e)
             return False
 
     async def discover_services(self, conn):
