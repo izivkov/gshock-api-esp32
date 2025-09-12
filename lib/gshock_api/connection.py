@@ -65,6 +65,9 @@ class Connection:
             self.client = await found.connect()
 
             service = await self.client.service(bluetooth.UUID(CasioConstants.CASIO_MAIN_SERVICE_UUID))
+            if service == None:
+                logger.error (f"Could not find service for {CasioConstants.CASIO_MAIN_SERVICE_UUID}")
+                return False
 
             # Subscribe to known notifiable characteristics
             for char_uuid in CasioConstants.CASIO_NOTIFY_CHARACTERISTICS:

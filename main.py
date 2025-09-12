@@ -59,8 +59,9 @@ async def main():
     # Run all concurrently
     await asyncio.gather(server_task, watcher_task)
 
+# Starting support processes...
 async def init():
-    
+
     set_colors()
     display.show_message("Starting...")
 
@@ -74,20 +75,6 @@ async def start_time_setter():
     display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")
     gc.collect()
     time.sleep(2)
-
-async def start_dimmer():
-    dim_display = DimDisplay(display, touch)
-    dim_display.start()
-    gc.collect()
-
-def set_colors():
-    display_fg_color = config_manager.get("foreground_color", "15130857")
-    display_bg_color = config_manager.get("background_color", "1315352")
-
-    fg = display.decimal_to_rgb(int(display_fg_color))
-    bg = display.decimal_to_rgb(int(display_bg_color))
-    display.set_colors(fg, bg)
-    gc.collect()
 
 def set_server_time():
     try:
@@ -110,6 +97,20 @@ def set_server_time():
     
     finally:
         network_time_setter.cleanup()
+
+async def start_dimmer():
+    dim_display = DimDisplay(display, touch)
+    dim_display.start()
+    gc.collect()
+
+def set_colors():
+    display_fg_color = config_manager.get("foreground_color", "15130857")
+    display_bg_color = config_manager.get("background_color", "1315352")
+
+    fg = display.decimal_to_rgb(int(display_fg_color))
+    bg = display.decimal_to_rgb(int(display_bg_color))
+    display.set_colors(fg, bg)
+    gc.collect()
 
 asyncio.run(main())
 

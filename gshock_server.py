@@ -75,9 +75,7 @@ async def gshock_server():
 
             # Apply fine adjustment to the time
             fine_adjustment_secs = 0
-
             await api.set_time(offset=fine_adjustment_secs)
-
             logger.info(f"Time set at {utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}")
 
             if pressed_button == WatchButton.LOWER_LEFT:
@@ -88,10 +86,9 @@ async def gshock_server():
                                             watch_name=watch_info.name,
                                             last_sync=formatted_time)
 
-            if watch_info.alwaysConnected == False:
-                await connection.disconnect()
-                connection = None
-                gc.collect()
+            await connection.disconnect()
+            connection = None
+            gc.collect()
 
         except (GShockConnectionError, GShockIgnorableException) as e:
             logger.error("Got error: {}".format(e))

@@ -58,9 +58,15 @@ The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is e
 ***
 
 **Download the latest firmware:**  
-Follow the instructions [here](https://micropython.org/download/ESP32_GENERIC_C6/) to download and install the latest MicroPython firmare on your device. 
+- Follow the instructions [here](https://micropython.org/download/ESP32_GENERIC_C6/) to download and install the latest MicroPython firmare on your device. 
 
 > Note: On Linux, the port is typically `/dev/ttyACM0`.
+
+- install mpremote
+
+```
+pip install mpremote
+```
 
 **Deploy the Server Software:**  
 Copy project files to the ESP32:
