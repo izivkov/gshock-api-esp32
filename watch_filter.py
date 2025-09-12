@@ -27,11 +27,11 @@ class WatchFilter:
 
         elapsed = now - last_time
         if elapsed > 6 * 3600:
-            # connected more than 6 hours ago - allow...
+            # last connected more than 6 hours ago - allow...
             self.update_connection_time(watch_name=watch_name)
             return True
 
-        # connected less than 6 hours ago - deny...
+        # last connected less than 6 hours ago - deny...
         return False
 
     def update_connection_time(self, watch_name):
