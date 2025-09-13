@@ -52,29 +52,37 @@ class NetworkTimeSetter:
             print("Failed to validate timezone:", e)
             return False
 
+
     def _get_timezone_offset(self, timezone):
+
+        # Handle China timezones offline
+        CHINA_TZ_OFFSETS = {
+            "Asia/Shanghai": 8*3600,
+            "Asia/Beijing": 8*3600,
+            "Asia/Chongqing": 8*3600,
+            "Asia/Harbin": 8*3600,
+            "Asia/Urumqi": 6*3600,  # historical actual offset
+        }
+
+        if timezone in CHINA_TZ_OFFSETS:
+            return CHINA_TZ_OFFSETS[timezone]
+
+        # Fallback to worldtimeapi.org
         try:
             url = f"http://worldtimeapi.org/api/timezone/{timezone}"
             resp = urequests.get(url)
             if resp.status_code == 200:
                 data = resp.json()
                 resp.close()
-
                 utc_offset_str = data.get("utc_offset")
                 sign = 1 if utc_offset_str[0] == '+' else -1
                 hours = int(utc_offset_str[1:3])
                 minutes = int(utc_offset_str[4:6])
-                offset_seconds = sign * (hours * 3600 + minutes * 60)
-
-                if data.get("dst"):
-                    print("DST is active")
-                else:
-                    print("DST is not active")
-
+                offset_seconds = sign * (hours*3600 + minutes*60)
                 return offset_seconds
             else:
-                print("Error fetching timezone:", resp.status_code)
                 resp.close()
+                print("Error fetching timezone:", resp.status_code)
         except Exception as e:
             print("Failed to get timezone offset:", e)
 

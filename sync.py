@@ -51,7 +51,6 @@ def list_esp_files():
 def normalize(path):
     return path.lstrip("/").replace("\\", "/")
 
-
 def delete_extra_files(local_files, esp_files):
     """Delete ESP32 files not present locally."""
     local_set = set(normalize(f) for f in local_files)
