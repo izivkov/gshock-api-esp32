@@ -2,6 +2,8 @@ import uasyncio as asyncio
 from machine import Pin
 import neopixel
 
+print("imported LED")
+
 class LEDController:
     MODE_OFF = 0
     MODE_SMOOTH = 1
@@ -10,15 +12,17 @@ class LEDController:
     MODE_SOLID_RED = 4
     MODE_SOLID_GREEN = 5
     MODE_SOLID_BLUE = 6
-    MODE_SOLID_WHITE = 7
+    MODE_BLINK_BLUE = 7
+    MODE_SOLID_WHITE = 8
 
     def __init__(self, pin=8, num_leds=1):
+        print(f"LEDController created...")
         self.np = neopixel.NeoPixel(Pin(pin), num_leds)
         self.mode = self.MODE_OFF
         self.running = True
 
         # Define the colors in **RGB order**
-        rgb_colors = [
+        self.colors = [
             (255, 0, 0),    # Red
             (0, 255, 0),    # Green
             (0, 0, 255),    # Blue
@@ -27,9 +31,6 @@ class LEDController:
             (255, 0, 255),  # Magenta
             (255, 255, 255) # White
         ]
-
-        # Convert RGB -> GRB for the NeoPixel
-        self.colors = [(g, r, b) for (r, g, b) in rgb_colors]
 
         # Named colors
         self.red_color = self.colors[0]
@@ -40,8 +41,12 @@ class LEDController:
         # Start the internal async loop automatically
         asyncio.create_task(self._run())
 
-    def set_color(self, r, g, b):
-        self.np[0] = (r, g, b)
+    def set_color(self, r, g, b, brightness = .06):
+        scaled_red = int(r*brightness)
+        scaled_green = int(g*brightness)
+        scaled_blue = int(b*brightness)
+        
+        self.np[0] = (scaled_red, scaled_green,scaled_blue)
         self.np.write()
 
     def turn_off(self):
@@ -66,6 +71,14 @@ class LEDController:
 
     def white_on(self):
         self.set_color(*self.white_color)
+
+    def set_brightness(np, brightness):
+        """Set brightness as a factor (0.0 to 1.0) of full 255 RGB values."""
+        # Example base full brightness color (white)
+        base_color = (255, 255, 255)
+        scaled_color = tuple(int(c * brightness) for c in base_color)
+        np[0] = scaled_color
+        np.write()
 
     # ------------------------------
     # Async mode runner
@@ -106,15 +119,29 @@ class LEDController:
                 await asyncio.sleep(0.1)
 
             elif self.mode == self.MODE_SOLID_RED:
+                await asyncio.sleep(0.1)
                 self.set_color(*self.red_color)
 
             elif self.mode == self.MODE_SOLID_GREEN:
+                await asyncio.sleep(0.1)
                 self.set_color(*self.green_color)
 
             elif self.mode == self.MODE_SOLID_BLUE:
+                await asyncio.sleep(0.1)
                 self.set_color(*self.blue_color)
 
+            elif self.mode == self.MODE_BLINK_BLUE:
+                self.set_color(*self.blue_color)
+                await asyncio.sleep(0.1)
+                self.turn_off()
+                await asyncio.sleep(0.1)
+
             elif self.mode == self.MODE_SOLID_WHITE:
+                await asyncio.sleep(0.1)
                 self.set_color(*self.white_color)
+
+            elif self.mode == self.MODE_SMOOTH:
+                await asyncio.sleep(0.1)
+                self.set_color(*self.MODE_SMOOTH)
 
 led = LEDController(pin=8, num_leds=1)  # Initialize with pin 8 and 1 LED

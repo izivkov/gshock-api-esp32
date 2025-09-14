@@ -77,6 +77,8 @@ class Display:
             cs=Pin(cfg["cs"], Pin.OUT),
         )
 
+        print(f"----------------> tft = {self.tft}")
+        
         # Double initialization workaround for display after reboot
         self.tft.init(landscape=cfg["landscape"], mirror_x=cfg["mirror_x"], mirror_y=cfg["mirror_y"], inversion=cfg["inversion"])
         self.tft.init(landscape=cfg["landscape"], mirror_x=cfg["mirror_x"], mirror_y=cfg["mirror_y"], inversion=cfg["inversion"])

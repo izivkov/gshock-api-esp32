@@ -5,7 +5,7 @@ import struct
 import ujson as json
 import machine
 from lib.display.display import display
-from lib.display.dim_display import DimDisplay
+from di import led, LEDController
 
 SERVICE_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef0")
 CHAR_UUID = bluetooth.UUID("abcdefab-1234-5678-1234-56789abcdef0")
@@ -113,6 +113,8 @@ async def advertise_and_handle_connections(char):
 
 
 async def config_server():
+    led.set_mode(LEDController.MODE_BLINK_BLUE)
+
     char = await init_ble()
     await advertise_and_handle_connections(char)
 

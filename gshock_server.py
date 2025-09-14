@@ -14,6 +14,7 @@ from di import display
 from lib.utils.run_once import run_once_key
 from lib.utils.persistent_store import store
 from watch_filter import watch_filter
+from di import led, LEDController
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
@@ -53,7 +54,9 @@ async def gshock_server():
             logger.info("Waiting for connection...")
             connection = Connection()
 
+            led.set_mode(LEDController.MODE_BLINK_GREEN)
             connected = await connection.connect(watch_filter.connection_filter)
+            led.set_mode(LEDController.MODE_SMOOTH)
 
             if not connected:
                 logger.info("Connect attempt failed; retrying...")
@@ -92,10 +95,12 @@ async def gshock_server():
 
         except (GShockConnectionError, GShockIgnorableException) as e:
             logger.error("Got error: {}".format(e))
+            led.set_mode(LEDController.MODE_BLINK_RED)
             continue
 
         except Exception as e:
             logger.error("Unknown error: {}".format(e))
+            led.set_mode(LEDController.MODE_BLINK_RED)
             continue
 
         finally:

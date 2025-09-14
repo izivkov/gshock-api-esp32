@@ -5,7 +5,7 @@ import gshock_server
 from lib.config.config_manager import config_manager
 import gc
 
-from di import display
+from di import display, led
 from lib.display.touch import touch
 from lib.display.dim_display import DimDisplay
 import utime as time
