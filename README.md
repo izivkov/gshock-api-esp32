@@ -41,17 +41,17 @@ The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is e
 ***
 Alternatively, you can get an even cheaper [Super Mini ESP32-E6](https://amzn.to/4pnojaY) (sponsored). 
 
-![Alt Image](docs/61NrBMqiNOL._AC_SL1500_.jpg)
+<img src="docs/61NrBMqiNOL._AC_SL1500_.jpg" alt="Alt Image" width="300">
 
 This device does not have a display but uses an LED to show the current status:
 
-    Pulsating green every 3 seconds — normal operation, waiting for a connection
+- Pulsating green every 3 seconds — normal operation, waiting for a connection
 
-    Changing colours — the device is connected to a watch, and the watch OS is being updated
+- Changing colours — the device is connected to a watch, and the watch OS is being updated
 
-    Blinking blue — the device is in configuration mode and is waiting for the Android app to connect
+- Blinking blue — the device is in configuration mode and is waiting for the Android app to connect
 
-    Blinking red — some error has occurred, such as an invalid configuration file
+- Blinking red — some error has occurred, such as an invalid configuration file
 
 ***
 
