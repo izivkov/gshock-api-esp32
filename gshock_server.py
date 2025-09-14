@@ -105,6 +105,7 @@ async def gshock_server():
 
         finally:
             gc.collect()
+            led.set_mode(LEDController.MODE_BLINK_RED)
 
 def get_next_alarm_time(alarms):
     now = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)
