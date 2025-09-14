@@ -45,13 +45,13 @@ Alternatively, you can get an even cheaper [Super Mini ESP32-E6](https://amzn.to
 
 This device does not have a display but uses an LED to show the current status:
 
-- Pulsating green every 3 seconds — normal operation, waiting for a connection
+- Pulsating green every 5 seconds — normal operation, waiting for a connection.
 
-- Changing colours — the device is connected to a watch, and the watch OS is being updated
+- Changing colors — the device is connected to a watch, and watch's time is being updated.
 
-- Blinking blue — the device is in configuration mode and is waiting for the Android app to connect
+- Blinking blue — the device is in configuration mode and is waiting for the Android app to connect.
 
-- Blinking red — some error has occurred, such as an invalid configuration file
+- Blinking red — some error has occurred, such as an invalid configuration file.
 
 ***
 
