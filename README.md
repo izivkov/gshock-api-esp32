@@ -40,7 +40,7 @@ The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is e
 
 ***
 Alternatively, you can get an even cheaper [Super Mini ESP32-E6](https://www.espboards.dev/esp32/esp32-c6-super-mini/). 
-You can get it at [Amazon](https://amzn.to/46iDrO5) or [AliExpress](https://s.click.aliexpress.com/e/_oDtUtRL) (sponsored). 
+You can get it at [Amazon](https://amzn.to/4gnInG8) or [AliExpress](https://s.click.aliexpress.com/e/_oDtUtRL) (sponsored). 
 
 <img src="docs/61NrBMqiNOL._AC_SL1500_.jpg" alt="Alt Image" width="200">
 
