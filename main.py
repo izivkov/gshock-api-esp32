@@ -5,7 +5,7 @@ import gshock_server
 from lib.config.config_manager import config_manager
 import gc
 
-from di import display, led
+from di import display
 from lib.display.touch import touch
 from lib.display.dim_display import DimDisplay
 import utime as time
@@ -84,6 +84,7 @@ def set_server_time():
 
         from lib.config.network_time_setter import NetworkTimeSetter
         network_time_setter = NetworkTimeSetter()
+
         time_set = network_time_setter.set_time(ssid, password, timezone)
         if not time_set:
             display.show_message (f"""Failed to set time using WiFi "{ssid}". Please check config and connection.""")

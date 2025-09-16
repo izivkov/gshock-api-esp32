@@ -54,7 +54,7 @@ async def gshock_server():
             logger.info("Waiting for connection...")
             connection = Connection()
 
-            led.set_mode(LEDController.MODE_BLINK_GREEN)
+            led.set_mode(LEDController.MODE_PULSATE_GREEN)
             connected = await connection.connect(watch_filter.connection_filter)
             led.set_mode(LEDController.MODE_SMOOTH)
 

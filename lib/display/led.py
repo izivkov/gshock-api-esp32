@@ -14,6 +14,7 @@ class LEDController:
     MODE_SOLID_BLUE = 6
     MODE_BLINK_BLUE = 7
     MODE_SOLID_WHITE = 8
+    MODE_PULSATE_GREEN = 9
 
     def __init__(self, pin=8, num_leds=1):
         print(f"LEDController created...")
@@ -106,11 +107,17 @@ class LEDController:
                         self.set_color(r, g, b)
                         await asyncio.sleep(step_time)
 
-            elif self.mode == self.MODE_BLINK_GREEN:
+            elif self.mode == self.MODE_PULSATE_GREEN:
                 self.set_color(*self.green_color)
                 await asyncio.sleep(0.01)
                 self.turn_off()
                 await asyncio.sleep(2.99)
+
+            elif self.mode == self.MODE_BLINK_GREEN:
+                self.set_color(*self.green_color)
+                await asyncio.sleep(0.01)
+                self.turn_off()
+                await asyncio.sleep(0.01)
 
             elif self.mode == self.MODE_BLINK_RED:
                 self.set_color(*self.red_color)
@@ -119,15 +126,12 @@ class LEDController:
                 await asyncio.sleep(0.1)
 
             elif self.mode == self.MODE_SOLID_RED:
-                await asyncio.sleep(0.1)
                 self.set_color(*self.red_color)
 
             elif self.mode == self.MODE_SOLID_GREEN:
-                await asyncio.sleep(0.1)
                 self.set_color(*self.green_color)
 
             elif self.mode == self.MODE_SOLID_BLUE:
-                await asyncio.sleep(0.1)
                 self.set_color(*self.blue_color)
 
             elif self.mode == self.MODE_BLINK_BLUE:

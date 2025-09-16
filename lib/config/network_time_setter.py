@@ -124,7 +124,6 @@ class NetworkTimeSetter:
             print("Error setting time:", e)
 
         finally:
-            # self.cleanup()
             pass
 
     def cleanup(self):
@@ -134,5 +133,3 @@ class NetworkTimeSetter:
             self.wlan = None
 
         gc.collect()
-
-# network_time_setter = NetworkTimeSetter()
