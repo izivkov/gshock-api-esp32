@@ -34,13 +34,13 @@ Just like your G-Shock itself, it’s designed to be set-and-forget. Just start 
 
 ## Hardware
 
-The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is exactly this display, because pins differ for similar displays, even from the same manufacturer. Also, the `touch` function is used to wake up the display, so make usre it is exactly the same model. You can get it at [Amazon](https://amzn.to/3K5IhXz) or [AliExpress](https://s.click.aliexpress.com/e/_oEn3un7) (sponsored).
+The currently supported hardware is `ESP32-C6-Touch-LCD-1.47`. Make sure it is exactly this display, because pins differ for similar displays, even from the same manufacturer. Also, the `touch` function is used to wake up the display, so make usre it is exactly the same model. You can get it at [Amazon](https://amzn.to/4gnInG8) or [AliExpress](https://s.click.aliexpress.com/e/_oEn3un7) (sponsored).
 
 ![Alt Image](docs/ESP32-C6-Touch-LCD-1.47-02.jpg)
 
 ***
 Alternatively, you can get an even cheaper [Super Mini ESP32-E6](https://www.espboards.dev/esp32/esp32-c6-super-mini/). 
-You can get it at [Amazon](https://amzn.to/4gnInG8) or [AliExpress](https://s.click.aliexpress.com/e/_oDtUtRL) (sponsored). 
+You can get it at [Amazon](https://amzn.to/46iDrO5) or [AliExpress](https://s.click.aliexpress.com/e/_oDtUtRL) (sponsored). 
 
 <img src="docs/61NrBMqiNOL._AC_SL1500_.jpg" alt="Alt Image" width="200">
 
