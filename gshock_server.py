@@ -13,7 +13,7 @@ import lib.utils.utils as utils
 from di import display
 from lib.utils.run_once import run_once_key
 from lib.utils.persistent_store import store
-from watch_filter import watch_filter
+from gshock_api.always_connected_watch_filter import always_connected_watch_filter as watch_filter
 from di import led, LEDController
 
 __author__ = "Ivo Zivkov"
