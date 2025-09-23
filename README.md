@@ -26,9 +26,10 @@ Just like your G-Shock itself, it’s designed to be set-and-forget. Just start 
 
 ## Requirements
 
-- `ESP32-C6-Touch-LCD-1.47` micro controller with a touch-enabled display.  
+- `ESP32-C6-Touch-LCD-1.47` micro controller with a touch-enabled display or a `Super Mini ESP32-E6` micro controller.
 - MicroPython firmware  
-- `mpremote` for file transfer  
+- `mpremote` for file transfer
+- USB C cable to connect the device to your computer
 
 ***
 
@@ -60,19 +61,6 @@ This device does not have a display but uses an LED to show the current status:
 
 ### 1. Installing the Software
 
-## Server Software Structure
-
-- `main.py` – Main entry point for the ESP32 server  
-- `config_server.py` – Configuration server used to connect to the supporting Android app and receive configuration information  
-- `gshock_server.py` / `gshock_server_no_display.py` – Main G-Shock server logic (with/without display)  
-- `lib/` – Core libraries:  
-  - `display/` – Display and LED control (ST7789, fonts, icons)  
-  - `config/` – Configuration management  
-  - `gshock_api/` – Software to connect and communicate with G-Shock watches  
-  - `utils/` – Utility functions and persistent storage  
-
-***
-
 **Download the latest firmware:**  
 - Follow the instructions [here](https://micropython.org/download/ESP32_GENERIC_C6/) to download and install the latest MicroPython firmare on your device. 
 
@@ -85,11 +73,22 @@ pip install mpremote
 ```
 
 **Deploy the Server Software:**  
+
+Here is the structure of the server software files:
+
+- `main.py` – Main entry point for the ESP32 server  
+- `config_server.py` – Configuration server used to connect to the supporting Android app and receive configuration information  
+- `gshock_server.py` / `gshock_server_no_display.py` – Main G-Shock server logic (with/without display)  
+- `lib/` – Core libraries:  
+  - `display/` – Display and LED control (ST7789, fonts, icons)  
+  - `config/` – Configuration management  
+  - `gshock_api/` – Software to connect and communicate with G-Shock watches  
+  - `utils/` – Utility functions and persistent storage  
+
 Copy project files to the ESP32:
 ```
 python sync.py
 ```
-
 ***
 
 ### 2. Configure WiFi
