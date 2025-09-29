@@ -33,14 +33,17 @@ class Connection:
 
         # Check if advertisement matches the desired device and passes filter
         def _is_target_device(adv):
-            name = adv.name()
-            if not name:
+            # Long form: "00001804-0000-1000-8000-00805f9b34fb"
+            # Short form: 0x1804
+            CASIO_SERVICE_UUID = UUID(0x1804)  # use short form directly, long form does not work with uPy.
+
+            # Convert generator to list so it can be iterated multiple times
+            services = list(adv.services() or [])
+
+            # Check if the target UUID is in the advertised services
+            if CASIO_SERVICE_UUID not in services:
                 return False
-            name = remove_non_printable(name).upper()
-            if not name.startswith('CASIO'):
-                return False
-            if watch_filter and not watch_filter(name):
-                return False
+
             return True
 
         try:
