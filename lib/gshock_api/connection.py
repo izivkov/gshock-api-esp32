@@ -37,6 +37,7 @@ class Connection:
             # Short form: 0x1804
             CASIO_SERVICE_UUID = UUID(0x1804)  # use short form directly, long form does not work with uPy.
 
+
             # Convert generator to list so it can be iterated multiple times
             services = list(adv.services() or [])
 
@@ -44,6 +45,13 @@ class Connection:
             if CASIO_SERVICE_UUID not in services:
                 return False
 
+            def remove_non_printable(s):
+                return ''.join(c for c in s if 32 <= ord(c) <= 126)
+
+            name = (remove_non_printable(adv.name()) or "").upper()
+            if watch_filter and not watch_filter(name):
+                return False
+            
             return True
 
         try:
