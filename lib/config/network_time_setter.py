@@ -130,6 +130,5 @@ class NetworkTimeSetter:
         print("Cleaning up network resources...")
         if self.wlan:
             self.wlan.active(False)
-            self.wlan = None
 
         gc.collect()

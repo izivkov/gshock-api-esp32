@@ -69,7 +69,7 @@ async def init():
     await start_dimmer()
 
 async def start_time_setter():
-    time_task = PeriodicTaskRunner(set_server_time, interval_sec=86400, run_immediately=True)
+    time_task = PeriodicTaskRunner(set_server_time, interval_sec=6*60*60, run_immediately=True)
     await time_task.start(block_until_first_run=True)
 
     display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")
