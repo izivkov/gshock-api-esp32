@@ -15,6 +15,7 @@ from lib.utils.run_once import run_once_key
 from lib.utils.persistent_store import store
 from gshock_api.always_connected_watch_filter import always_connected_watch_filter as watch_filter
 from di import led, LEDController
+from lib.config.network_time_setter import network_time_setter
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
@@ -46,7 +47,7 @@ async def gshock_server():
             run_once_key(
                 "show_welcome_screen",
                 display.show_welcome_screen,
-                "Waiting for connection...",
+                message_last_ntp_sync(),
                 watch_name=store.get("watch_name", None),
                 last_sync=store.get("last_connected", "Unknown"),
             )
@@ -85,7 +86,7 @@ async def gshock_server():
                 await show_display(api)
                 pass
             else:
-                display.show_welcome_screen("Waiting for connection...",
+                display.show_welcome_screen(message_last_ntp_sync(),
                                             watch_name=watch_info.name,
                                             last_sync=formatted_time)
 
@@ -106,6 +107,27 @@ async def gshock_server():
         finally:
             gc.collect()
             led.set_mode(LEDController.MODE_BLINK_RED)
+
+def message_last_ntp_sync():
+    """
+    Creates a formatted message string for the last NTP sync time.
+    
+    This function expects network_time_setter.last_ntp_sync to be an integer
+    epoch timestamp. It uses MicroPython's `time.localtime()` to convert
+    the epoch time into a time tuple, and then formats it according to
+    predefined format strings.
+    """
+    time_fmt = config_manager.get("timeformat", "24H")
+    date_fmt = config_manager.get("dateformat", "MM/DD")
+    t = network_time_setter.last_ntp_sync
+    
+    if t is None:
+        last_ntp_sync = "Unknown"
+    else:
+        last_ntp_sync = f"{utils.format_month_day(t, date_fmt)} {utils.format_time(t, time_fmt, show_seconds=False)}"
+
+    message_last_ntp_sync_formatted = f"Last NTP Sync: {last_ntp_sync}"
+    return message_last_ntp_sync_formatted
 
 def get_next_alarm_time(alarms):
     now = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)

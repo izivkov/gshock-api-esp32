@@ -69,7 +69,7 @@ async def init():
     await start_dimmer()
 
 async def start_time_setter():
-    time_task = PeriodicTaskRunner(set_server_time, interval_sec=86400, run_immediately=True)
+    time_task = PeriodicTaskRunner(set_server_time, interval_sec=6*60*60, run_immediately=True)
     await time_task.start(block_until_first_run=True)
 
     display.show_message(f"Time on Server: {utils.format_time(time.localtime())}")
@@ -82,9 +82,7 @@ def set_server_time():
         password = config_manager.get("password")
         timezone = config_manager.get("timezone", "UTC")
 
-        from lib.config.network_time_setter import NetworkTimeSetter
-        network_time_setter = NetworkTimeSetter()
-
+        from lib.config.network_time_setter import network_time_setter
         time_set = network_time_setter.set_time(ssid, password, timezone)
         if not time_set:
             display.show_message (f"""Failed to set time using WiFi "{ssid}". Please check config and connection.""")

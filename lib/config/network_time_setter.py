@@ -6,10 +6,10 @@ import urequests
 import gc
 
 class NetworkTimeSetter:
-    wlan = None
     
     def __init__(self):
         self.wlan = network.WLAN(network.STA_IF)
+        self.last_ntp_sync = None  # Store as epoch integer
         time.sleep_ms(200)
 
     def _connect_wifi(self, ssid, password):
@@ -117,7 +117,7 @@ class NetworkTimeSetter:
                 local_time[3], local_time[4], local_time[5], 0
             ))
 
-            print(f"Time set to {timezone}: {local_time}")
+            self.last_ntp_sync = local_time
             return True
 
         except Exception as e:
@@ -129,7 +129,9 @@ class NetworkTimeSetter:
     def cleanup(self):
         print("Cleaning up network resources...")
         if self.wlan:
+            self.wlan.disconnect()
             self.wlan.active(False)
-            self.wlan = None
 
         gc.collect()
+
+network_time_setter = NetworkTimeSetter()
