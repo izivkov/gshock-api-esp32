@@ -37,9 +37,9 @@ def format_month_day(t, order="MM:DD"):
     day = t[2]    # tm_mday
 
     if order == "MM/DD":
-        return f"{month:02d}:{day:02d}"
+        return f"{month:02d}/{day:02d}"
     elif order == "DD/MM":
-        return f"{day:02d}:{month:02d}"
+        return f"{day:02d}/{month:02d}"
     else:
         raise ValueError("order must be 'MM/DD' or 'DD/MM'")
 
