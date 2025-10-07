@@ -15,7 +15,7 @@ from lib.utils.run_once import run_once_key
 from lib.utils.persistent_store import store
 from gshock_api.always_connected_watch_filter import always_connected_watch_filter as watch_filter
 from di import led, LEDController
-from lib.config.network_time_setter import network_time_setter
+from lib.config.network_time_setter import network_time_setter, last_ntp_sync
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
@@ -119,14 +119,15 @@ def message_last_ntp_sync():
     """
     time_fmt = config_manager.get("timeformat", "24H")
     date_fmt = config_manager.get("dateformat", "MM/DD")
-    t = network_time_setter.last_ntp_sync
-    
+    # t = network_time_setter.last_ntp_sync
+    t = last_ntp_sync
+       
     if t is None:
-        last_ntp_sync = "Unknown"
+        last_ntp_sync_local = "Unknown"
     else:
-        last_ntp_sync = f"{utils.format_month_day(t, date_fmt)} {utils.format_time(t, time_fmt, show_seconds=False)}"
+        last_ntp_sync_local = f"{utils.format_month_day(t, date_fmt)} {utils.format_time(t, time_fmt, show_seconds=False)}"
 
-    message_last_ntp_sync_formatted = f"Last NTP Sync: {last_ntp_sync}"
+    message_last_ntp_sync_formatted = f"Last NTP Sync: {last_ntp_sync_local}"
     return message_last_ntp_sync_formatted
 
 def get_next_alarm_time(alarms):

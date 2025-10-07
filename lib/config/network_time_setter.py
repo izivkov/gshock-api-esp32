@@ -5,11 +5,12 @@ import machine
 import urequests
 import gc
 
+last_ntp_sync = None
+
 class NetworkTimeSetter:
     
     def __init__(self):
         self.wlan = network.WLAN(network.STA_IF)
-        self.last_ntp_sync = None  # Store as epoch integer
         time.sleep_ms(200)
 
     def _connect_wifi(self, ssid, password):
@@ -51,7 +52,6 @@ class NetworkTimeSetter:
         except Exception as e:
             print("Failed to validate timezone:", e)
             return False
-
 
     def _get_timezone_offset(self, timezone):
 
@@ -103,12 +103,14 @@ class NetworkTimeSetter:
 
             # Get timezone offset dynamically (DST-aware)
             offset_sec = self._get_timezone_offset(timezone)
-            print(f"Offset for {timezone}: {offset_sec} seconds")
 
             # Apply offset to UTC time
-            utc_time = time.localtime()
-            local_epoch = time.mktime(utc_time) + offset_sec
+            utc_epoch = time.time() 
+            local_epoch = utc_epoch + offset_sec
             local_time = time.localtime(local_epoch)
+
+            global last_ntp_sync
+            last_ntp_sync = local_time
 
             # Set RTC to local time
             machine.RTC().datetime((
@@ -117,7 +119,6 @@ class NetworkTimeSetter:
                 local_time[3], local_time[4], local_time[5], 0
             ))
 
-            self.last_ntp_sync = local_time
             return True
 
         except Exception as e:
