@@ -15,6 +15,7 @@ from lib.utils.run_once import run_once_key
 from lib.utils.persistent_store import store
 from gshock_api.always_connected_watch_filter import always_connected_watch_filter as watch_filter
 from di import led, LEDController
+from lib.config.network_time_setter import network_time_setter
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
@@ -57,6 +58,11 @@ async def gshock_server():
             led.set_mode(LEDController.MODE_PULSATE_GREEN)
             connected = await connection.connect(watch_filter.connection_filter)
             led.set_mode(LEDController.MODE_SMOOTH)
+
+            if not network_time_setter.is_NTP_set():
+                logger.info("Network time not set on server on server - cannot sync...")
+                display.show_message("NTP not set - cannot sync")
+                continue
 
             if not connected:
                 logger.info("Connect attempt failed; retrying...")

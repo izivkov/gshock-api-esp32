@@ -108,7 +108,11 @@ class NetworkTimeSetter:
             # Apply offset to UTC time
             utc_time = time.localtime()
             local_epoch = time.mktime(utc_time) + offset_sec
+
             local_time = time.localtime(local_epoch)
+            if local_time[0] < 2025:
+                print("Failed to get valid local time.")
+                return False
 
             # Set RTC to local time
             machine.RTC().datetime((
@@ -126,9 +130,16 @@ class NetworkTimeSetter:
         finally:
             pass
 
+    def is_NTP_set(self):
+        rtc = machine.RTC()
+        year = rtc.datetime()[0]
+        return year >= 2025
+
     def cleanup(self):
         print("Cleaning up network resources...")
         if self.wlan:
             self.wlan.active(False)
 
         gc.collect()
+
+network_time_setter = NetworkTimeSetter()
