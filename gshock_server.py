@@ -64,7 +64,6 @@ async def gshock_server():
                 display.show_message("NTP not set - cannot sync")
                 await connection.disconnect()
                 connection = None
-                gc.collect()
                 continue
 
             if not connected:
