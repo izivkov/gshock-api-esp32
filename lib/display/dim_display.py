@@ -1,7 +1,5 @@
 import uasyncio as asyncio
-from machine import PWM, Pin
 import time
-from lib.display.display import display
 
 class DimDisplay:
 

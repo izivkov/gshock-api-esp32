@@ -154,7 +154,6 @@ class Display:
                     current_y += font_big.HEIGHT * 2 + line_gap
                 else:
                     # Regular key/value row
-                    key_width = len(key) * font_small.WIDTH
                     val_width = len(value) * font_small.WIDTH
                     self.tft.text(left_margin, current_y, key, self.fg, self.bg)
                     val_x = self.width - right_margin - val_width
@@ -225,10 +224,10 @@ class Display:
             if watch_name is not None:
                 short_name = ' '.join(watch_name.strip().split()[1:])
                 lines.append((f"{short_name}", 2))
-            lines.append((f"", 1))
+            lines.append(("", 1))
             lines.append(("Last Synced:", 2))
             lines.append((last_sync, 2))
-            lines.append((f"", 1))
+            lines.append(("", 1))
             lines.append((message, 1))
             line_heights = [font_small.HEIGHT * scale for _, scale in lines]
             total_text_height = sum(line_heights) + line_spacing * (len(lines) - 1)

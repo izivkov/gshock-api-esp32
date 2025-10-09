@@ -1,5 +1,3 @@
-import uasyncio as asyncio
-import json
 # import time
 
 # You must port or recreate these for MicroPython environment:
@@ -10,12 +8,7 @@ from gshock_api.utils import to_hex_string, to_compact_string
 from gshock_api.alarms import alarms_inst
 # from gshock_api.event import Event
 from gshock_api.watch_info import watch_info
-from gshock_api.logger import logger
 
-from gshock_api.utils import (
-    to_hex_string,
-    to_compact_string,
-)
 
 class GshockAPI:
     """

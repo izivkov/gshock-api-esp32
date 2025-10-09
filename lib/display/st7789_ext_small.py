@@ -7,7 +7,8 @@
 # All Rights Reserved
 # All the changes released under the MIT license as the original code.
 
-import display.st7789_base as st7789_base, framebuf, struct
+import display.st7789_base as st7789_base
+import framebuf
 
 class ST7789(st7789_base.ST7789_base):
 

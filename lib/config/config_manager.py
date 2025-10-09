@@ -1,5 +1,4 @@
 import ujson as json
-import os
 
 # {
 #     "ssid": "MyWiFi",

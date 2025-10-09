@@ -1,4 +1,3 @@
-import uasyncio as asyncio
 import json
 
 from gshock_api.logger import logger
@@ -15,7 +14,6 @@ from gshock_api.iolib.watch_condition_io import WatchConditionIO
 from gshock_api.iolib.error_io import ErrorIO
 from gshock_api.iolib.unknown_io import UnknownIO
 from gshock_api.iolib.button_pressed_io import ButtonPressedIO
-from gshock_api.utils import to_hex_string
 
 CHARACTERISTICS = CasioConstants.CHARACTERISTICS
 

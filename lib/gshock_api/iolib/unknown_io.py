@@ -1,4 +1,3 @@
-from gshock_api.logger import logger
 
 class UnknownIO:
     @staticmethod

@@ -17,7 +17,7 @@ class LEDController:
     MODE_PULSATE_GREEN = 9
 
     def __init__(self, pin=8, num_leds=1):
-        print(f"LEDController created...")
+        print("LEDController created...")
         self.np = neopixel.NeoPixel(Pin(pin), num_leds)
         self.mode = self.MODE_OFF
         self.running = True

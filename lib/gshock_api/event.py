@@ -161,7 +161,7 @@ class Event:
         incompatible,
         selected,
     ):
-        time_obj = types.SimpleNamespace()
+        time_obj = {}
         time_obj.repeatPeriod = repeat_period
         time_obj.daysOfWeek = days_of_week
         time_obj.enabled = enabled

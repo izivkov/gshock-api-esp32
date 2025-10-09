@@ -1,7 +1,5 @@
 import uasyncio as asyncio
-import bluetooth
 
-from gshock_api.casio_constants import CasioConstants
 from gshock_api import message_dispatcher
 from gshock_api.logger import logger
 
@@ -19,7 +17,7 @@ class DataListener:
             pass  # Task cancelled normally
         except OSError as e:
             logger.info(f"Device disconnected or notification error: {e}")
-        except Exception as e:
+        except Exception:
             # logger.error(f"Unexpected error in notification listener: {e}")
             pass
 

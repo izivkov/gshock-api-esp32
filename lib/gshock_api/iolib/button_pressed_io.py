@@ -1,5 +1,4 @@
 from gshock_api.cancelable_result import CancelableResult
-from gshock_api.logger import logger
 from gshock_api.utils import to_compact_string, to_hex_string, to_int_array
 from gshock_api.casio_constants import CasioConstants
 

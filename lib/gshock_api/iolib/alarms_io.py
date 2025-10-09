@@ -1,5 +1,3 @@
-import asyncio
-import json
 from gshock_api.alarms import alarms_inst, alarm_decoder
 
 from gshock_api.cancelable_result import CancelableResult

@@ -4,9 +4,9 @@ from aioble import DeviceDisconnectedError, GattError  # Micropython aioble exce
 import bluetooth
 from bluetooth import UUID
 from gshock_api.casio_constants import CasioConstants
-from gshock_api.exceptions import GShockIgnorableException, GShockConnectionError
+from gshock_api.exceptions import GShockIgnorableException
 from gshock_api.logger import logger
-from gshock_api.utils import to_casio_cmd, to_hex_string
+from gshock_api.utils import to_casio_cmd
 from gshock_api.watch_info import watch_info
 from gshock_api.data_listener import data_listener
 from gshock_api import message_dispatcher
@@ -76,7 +76,7 @@ class Connection:
             self.client = await found.connect()
 
             service = await self.client.service(bluetooth.UUID(CasioConstants.CASIO_MAIN_SERVICE_UUID))
-            if service == None:
+            if service is None:
                 logger.error (f"Could not find service for {CasioConstants.CASIO_MAIN_SERVICE_UUID}")
                 return False
 

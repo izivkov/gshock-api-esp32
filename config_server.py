@@ -62,7 +62,7 @@ async def handle_connection(char, conn):
     buffer = bytearray()
     expected_len = None
 
-    display.show_message(f"Waiting for data...")
+    display.show_message("Waiting for data...")
     
     while conn.is_connected():
         try:
@@ -96,7 +96,7 @@ async def handle_connection(char, conn):
             break
 
     print("Central disconnected")
-    display.show_message(f"Configuration completed.")
+    display.show_message("Configuration completed.")
 
 async def advertise_and_handle_connections(char):
     while True:

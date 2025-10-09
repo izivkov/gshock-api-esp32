@@ -6,12 +6,12 @@ However, we cannot distinguish programmatically between the two supported boards
 and "ESP32-C6-Touch-LCD-1.47", so we just pass the imports as they are.
 """
 
+from lib.display.display import display
+from lib.display.touch import touch
+from lib.display.led import led, LEDController
+
 import os
 
 info = os.uname()
 print("os.uname", info)
-
-from lib.display.display import display
-from lib.display.touch import touch
-from lib.display.led import led, LEDController
 

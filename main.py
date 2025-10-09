@@ -34,7 +34,7 @@ async def start_config_mode():
         server_task.cancel()
         try:
             await server_task
-        except:  # Ignore cancellation exception
+        except Exception:  # Ignore cancellation exception
             pass
     server_task = asyncio.create_task(config_server.main())
 
@@ -93,7 +93,7 @@ def set_server_time():
         else:
             return True
 
-    except Exception as e:
+    except Exception:
         return False
     
     finally:

@@ -1,3 +1,5 @@
+# ruff: noqa
+
 # This code is originally from https://github.com/devbis/st7789py_mpy
 # It's under the MIT license as well.
 #
@@ -151,4 +153,3 @@ class ST7789(st7789_base.ST7789_base):
             nread = f.readinto(buf)
             if nread == 0: return
             self.write(None, nocopy[:nread])
-
