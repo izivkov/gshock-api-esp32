@@ -60,7 +60,7 @@ async def gshock_server():
             led.set_mode(LEDController.MODE_SMOOTH)
 
             if not network_time_setter.is_NTP_set():
-                logger.info("Network time not set on server on server - cannot sync...")
+                logger.info("Network time not set on device - cannot sync...")
                 display.show_message("NTP not set - cannot sync")
                 await connection.disconnect()
                 connection = None
