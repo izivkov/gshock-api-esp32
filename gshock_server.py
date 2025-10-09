@@ -62,6 +62,9 @@ async def gshock_server():
             if not network_time_setter.is_NTP_set():
                 logger.info("Network time not set on server on server - cannot sync...")
                 display.show_message("NTP not set - cannot sync")
+                await connection.disconnect()
+                connection = None
+                gc.collect()
                 continue
 
             if not connected:
