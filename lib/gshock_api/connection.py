@@ -37,7 +37,6 @@ class Connection:
             # Short form: 0x1804
             CASIO_SERVICE_UUID = UUID(0x1804)  # use short form directly, long form does not work with uPy.
 
-
             # Convert generator to list so it can be iterated multiple times
             services = list(adv.services() or [])
 
