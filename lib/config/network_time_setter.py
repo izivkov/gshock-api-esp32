@@ -6,10 +6,9 @@ import urequests
 import gc
 
 class NetworkTimeSetter:
-    wlan = None
-    
     def __init__(self):
         self.wlan = network.WLAN(network.STA_IF)
+        self.timezone_set = False
         time.sleep_ms(200)
 
     def _connect_wifi(self, ssid, password):
@@ -55,6 +54,8 @@ class NetworkTimeSetter:
 
     def _get_timezone_offset(self, timezone):
 
+        self.timezone_set = True
+
         # Handle China timezones offline
         CHINA_TZ_OFFSETS = {
             "Asia/Shanghai": 8*3600,
@@ -81,12 +82,11 @@ class NetworkTimeSetter:
                 offset_seconds = sign * (hours*3600 + minutes*60)
                 return offset_seconds
             else:
-                resp.close()
+                self.timezone_set = False
                 print("Error fetching timezone:", resp.status_code)
-        except Exception as e:
-            print("Failed to get timezone offset:", e)
-
-        return 0
+                raise Exception("Failed to get timezone offset")
+        finally:
+            resp.close()
 
     def set_time(self, ssid, password, timezone) -> bool:
         # Connect to Wi-Fi
@@ -102,7 +102,13 @@ class NetworkTimeSetter:
                 return False
 
             # Get timezone offset dynamically (DST-aware)
-            offset_sec = self._get_timezone_offset(timezone)
+            try:
+                offset_sec = self._get_timezone_offset(timezone)
+            except Exception as e:
+                print("Failed to get timezone offset:", e)
+                # Do not set time if offset fetch fails
+                return False
+            
             print(f"Offset for {timezone}: {offset_sec} seconds")
 
             # Apply offset to UTC time
@@ -128,12 +134,12 @@ class NetworkTimeSetter:
             print("Error setting time:", e)
 
         finally:
-            pass
+            ...
 
     def is_NTP_set(self):
         rtc = machine.RTC()
         year = rtc.datetime()[0]
-        return year >= 2025
+        return year >= 2025 and self.timezone_set
 
     def cleanup(self):
         print("Cleaning up network resources...")

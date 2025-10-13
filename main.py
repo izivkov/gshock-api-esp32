@@ -12,6 +12,7 @@ import utime as time
 from lib.utils.periodic_task_runner import PeriodicTaskRunner
 import lib.utils.utils as utils
 from gshock_api.logger import logger
+from lib.config.network_time_setter import network_time_setter
 
 server_task = None
 boot_button = Pin(9, Pin.IN, Pin.PULL_UP)  # BOOT: usually HIGH
@@ -81,9 +82,6 @@ def set_server_time():
         ssid = config_manager.get("ssid")
         password = config_manager.get("password")
         timezone = config_manager.get("timezone", "UTC")
-
-        from lib.config.network_time_setter import NetworkTimeSetter
-        network_time_setter = NetworkTimeSetter()
 
         time_set = network_time_setter.set_time(ssid, password, timezone)
         if not time_set:
