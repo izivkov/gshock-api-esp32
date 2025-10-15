@@ -57,6 +57,10 @@ This device does not have a display but uses an LED to show the current status:
 
 ***
 
+**Pre-configured devices available. Inquire by email at [izivkov@gmail.com](mailto:izivkov@gmail.com)**
+
+***
+
 ## Getting Started
 
 ### 1. Installing the Software
