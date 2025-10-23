@@ -31,62 +31,48 @@ class NetworkTimeSetter:
 
         print("Network config:", self.wlan.ifconfig())
 
-    def is_timezone_valid(self, timezone):
-        try:
-            valid_resp = urequests.get("http://worldtimeapi.org/api/timezone")
-            if valid_resp.status_code != 200:
-                print("Error fetching timezone list:", valid_resp.status_code)
-                valid_resp.close()
-                return False
-
-            valid_timezones = valid_resp.json()
-            valid_resp.close()
-
-            if timezone not in valid_timezones:
-                print("Invalid timezone:", timezone)
-                return False
-
-            return True
-        except Exception as e:
-            print("Failed to validate timezone:", e)
-            return False
-
-
     def _get_timezone_offset(self, timezone):
-
         self.timezone_set = True
 
-        # Handle China timezones offline
         CHINA_TZ_OFFSETS = {
             "Asia/Shanghai": 8*3600,
             "Asia/Beijing": 8*3600,
             "Asia/Chongqing": 8*3600,
             "Asia/Harbin": 8*3600,
-            "Asia/Urumqi": 6*3600,  # historical actual offset
+            "Asia/Urumqi": 6*3600,
         }
 
         if timezone in CHINA_TZ_OFFSETS:
             return CHINA_TZ_OFFSETS[timezone]
 
-        # Fallback to worldtimeapi.org
-        try:
-            url = f"http://worldtimeapi.org/api/timezone/{timezone}"
-            resp = urequests.get(url)
-            if resp.status_code == 200:
-                data = resp.json()
-                resp.close()
-                utc_offset_str = data.get("utc_offset")
-                sign = 1 if utc_offset_str[0] == '+' else -1
-                hours = int(utc_offset_str[1:3])
-                minutes = int(utc_offset_str[4:6])
-                offset_seconds = sign * (hours*3600 + minutes*60)
-                return offset_seconds
-            else:
-                self.timezone_set = False
-                print("Error fetching timezone:", resp.status_code)
-                raise Exception("Failed to get timezone offset")
-        finally:
-            resp.close()
+        urls = [
+            f"http://worldtimeapi.org/api/timezone/{timezone}",
+            f"http://avmedia.org:11080/timezone/{timezone}"
+        ]
+
+        for url in urls:
+            resp = None
+            try:
+                print(f"Fetching timezone offset from {url}...")
+                resp = urequests.get(url)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    utc_offset_str = data.get("utc_offset")
+                    sign = 1 if utc_offset_str[0] == '+' else -1
+                    hours = int(utc_offset_str[1:3])
+                    minutes = int(utc_offset_str[4:6])
+                    offset_seconds = sign * (hours*3600 + minutes*60)
+                    return offset_seconds
+                else:
+                    print(f"Error fetching timezone from {url}: {resp.status_code}")
+            except Exception as e:
+                print(f"Exception fetching timezone from {url}: {e}")
+            finally:
+                if resp:
+                    resp.close()
+
+        self.timezone_set = False
+        raise Exception("Failed to get timezone offset from both sources")
 
     def set_time(self, ssid, password, timezone) -> bool:
         # Connect to Wi-Fi
@@ -96,10 +82,6 @@ class NetworkTimeSetter:
             # Sync NTP to UTC
             print("Fetching time from NTP...")
             ntptime.settime()  # sets time to UTC
-
-            if not self.is_timezone_valid(timezone):
-                print(f"Invalid timezone: {timezone}.")
-                return False
 
             # Get timezone offset dynamically (DST-aware)
             try:
