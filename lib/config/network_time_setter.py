@@ -34,17 +34,6 @@ class NetworkTimeSetter:
     def _get_timezone_offset(self, timezone):
         self.timezone_set = True
 
-        CHINA_TZ_OFFSETS = {
-            "Asia/Shanghai": 8*3600,
-            "Asia/Beijing": 8*3600,
-            "Asia/Chongqing": 8*3600,
-            "Asia/Harbin": 8*3600,
-            "Asia/Urumqi": 6*3600,
-        }
-
-        if timezone in CHINA_TZ_OFFSETS:
-            return CHINA_TZ_OFFSETS[timezone]
-
         urls = [
             f"http://worldtimeapi.org/api/timezone/{timezone}",
             f"http://avmedia.org:11080/timezone/{timezone}"

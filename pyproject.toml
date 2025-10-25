@@ -3,5 +3,5 @@ exclude = [
     "lib/display/st7789_base.py",
     "lib/display/st7789_ext.py",
     "lib/display/st7789_ext_small.py",
-    di.py
+    "di.py"
 ]
