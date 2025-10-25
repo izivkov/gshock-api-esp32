@@ -35,8 +35,8 @@ class NetworkTimeSetter:
         self.timezone_set = True
 
         urls = [
-            f"http://avmedia.org:11080/timezone/{timezone}"
-            f"http://worldtimeapi.org/api/timezone/{timezone}",
+            f"http://avmedia.org:11080/timezone/{timezone}",
+            f"http://worldtimeapi.org/api/timezone/{timezone}"
         ]
 
         for url in urls:
