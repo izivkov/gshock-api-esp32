@@ -33,5 +33,3 @@ def format_month_day(t, order="MM:DD"):
         return f"{day:02d}/{month:02d}"
     else:
         raise ValueError("order must be 'MM/DD' or 'DD/MM'")
-
-

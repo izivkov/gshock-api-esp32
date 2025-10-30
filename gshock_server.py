@@ -16,6 +16,7 @@ from lib.utils.persistent_store import store
 from gshock_api.always_connected_watch_filter import always_connected_watch_filter as watch_filter
 from di import led, LEDController
 from lib.config.network_time_setter import network_time_setter
+from lib.utils.activity_log import activity_log
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
@@ -62,12 +63,14 @@ async def gshock_server():
             if not network_time_setter.is_NTP_set():
                 logger.info("Network time not set on device - cannot sync...")
                 display.show_message("NTP not set - cannot sync")
+                activity_log.add_log("gshock_server", "NTP_NOT_SET", "Network time not set on device - cannot sync")
                 await connection.disconnect()
                 connection = None
                 continue
 
             if not connected:
                 logger.info("Connect attempt failed; retrying...")
+                activity_log.add_log("gshock_server", "CONNECT_FAILED", "Failed to connect to watch")                
                 await asyncio.sleep(1)
                 continue
 
@@ -88,6 +91,8 @@ async def gshock_server():
             fine_adjustment_secs = 0
             await api.set_time(offset=fine_adjustment_secs)
             logger.info(f"Time set at {utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}")
+            set_mode = "AUTO" if pressed_button is None else "MANUAL" if pressed_button == WatchButton.LOWER_RIGHT else "MANUAL WITH DISPLAY"
+            activity_log.add_log("Setting Time", "TIME_SET", f"Time set to {formatted_time} for watch {watch_info.name.strip('\u0000 \t\n\r')}, mode: {set_mode}")
 
             if pressed_button == WatchButton.LOWER_LEFT:
                 await show_display(api)
@@ -104,16 +109,19 @@ async def gshock_server():
         except (GShockConnectionError, GShockIgnorableException) as e:
             logger.error("Got error: {}".format(e))
             led.set_mode(LEDController.MODE_BLINK_RED)
+            activity_log.add_log("Setting Time", "ERROR", str(e))
             continue
 
         except Exception as e:
             logger.error("Unknown error: {}".format(e))
+            activity_log.add_log("Setting Time", "ERROR", str(e))  
             led.set_mode(LEDController.MODE_BLINK_RED)
             continue
 
         finally:
             gc.collect()
             led.set_mode(LEDController.MODE_BLINK_RED)
+            print(f"Activity Log: {activity_log.to_json()}")
 
 def get_next_alarm_time(alarms):
     now = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)

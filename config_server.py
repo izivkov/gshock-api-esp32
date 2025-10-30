@@ -7,8 +7,8 @@ import machine
 from lib.display.display import display
 from di import led, LEDController
 
-SERVICE_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef0")
-CHAR_UUID = bluetooth.UUID("abcdefab-1234-5678-1234-56789abcdef0")
+SERVICE_UUID = bluetooth.UUID("7e0c7b5d-52b0-4a46-b37b-93b3e8f1f2c9")   # Short form 0x1001
+CHAR_UUID = bluetooth.UUID("6fc72e6d-153d-4b5e-91e9-9e42a1b11bfa")      # Short form 0x1002
 
 def save_config(obj, filename="config.json"):
     try:
