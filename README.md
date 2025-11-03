@@ -148,7 +148,7 @@ The ESP32 display will automatically dim after 5 minutes and turn off completely
 
 ***
 
-### Logs
+### 5. Logs
 
 You can examine the activities on your device by using the same Android app you used for configiring the device. Go to the second screen, `Logs`, and you should see something like this:
 
@@ -158,7 +158,7 @@ Note that only the last 10 enries are kept. Also, the log will reset if the devi
 
 ***
 
-### Updating the software
+### 6. Updating the software
 
 If there is a new version of the software in this repository, you can update it on your device as follows:
 
@@ -170,7 +170,7 @@ python sync.py
 ```
 ***
 
-### Troubleshooting
+### 7. Troubleshooting
 
 If you see nothing on the screen, or the device keeps rebooting, run the server manually and look at the output for any problems:
 
