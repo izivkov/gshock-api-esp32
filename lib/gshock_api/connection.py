@@ -4,7 +4,7 @@ from aioble import DeviceDisconnectedError, GattError  # Micropython aioble exce
 import bluetooth
 from bluetooth import UUID
 from gshock_api.casio_constants import CasioConstants
-from gshock_api.exceptions import GShockIgnorableException
+from gshock_api.exceptions import GShockIgnorableException, GShockRateRestrictedWatchException
 from gshock_api.logger import logger
 from gshock_api.utils import to_casio_cmd
 from gshock_api.watch_info import watch_info
@@ -22,7 +22,7 @@ class Connection:
         self._discovery_lock = asyncio.Lock()
         self._discovered = False
 
-    async def connect(self, watch_filter=None) -> bool:
+    async def connect(self, watch_filter=None) -> tuple[bool, str | None]:
         # Remove non-printable ASCII characters
         def remove_non_printable(s):
             return ''.join(c for c in s if 32 <= ord(c) <= 126)
@@ -33,40 +33,44 @@ class Connection:
 
         # Check if advertisement matches the desired device and passes filter
         def _is_target_device(adv):
-            # Long form: "00001804-0000-1000-8000-00805f9b34fb"
-            # Short form: 0x1804
-            CASIO_SERVICE_UUID = UUID(0x1804)  # use short form directly, long form does not work with uPy.
-            CONFIG_SERVICE_UUID = UUID(0x1001)  # use short form directly, long form does not work with uPy.
+            # Define UUIDs as constants at class level or module level
+            CASIO_SERVICE_UUID = UUID(0x1804)
+            CONFIG_SERVICE_UUID = UUID(0x2001)
 
-            # Convert generator to list so it can be iterated multiple times
+            # Get services once, avoid multiple calls
             services = list(adv.services() or [])
+            device_name = adv.name()
 
-            # Check if the target UUID is in the advertised services
+            # Early return for config service
+            if CONFIG_SERVICE_UUID in services:
+                return True
+
+            # Early return if no Casio service
             if CASIO_SERVICE_UUID not in services:
                 return False
 
-            def remove_non_printable(s):
-                return ''.join(c for c in s if 32 <= ord(c) <= 126)
+            # Only process name if we have a filter
+            if watch_filter:
+                name = (remove_non_printable(device_name) or "").upper()
+                if not watch_filter(name):
+                    raise GShockRateRestrictedWatchException("Watch connection rate restricted by filter.")
+                    return False
 
-            name = (remove_non_printable(adv.name()) or "").upper()            
-            if watch_filter and not watch_filter(name):
-                return False
-            
             return True
 
         try:
             found = None
+            name = None
             while not found:
                 async with aioble.scan(5000) as scanner:
                     async for adv in scanner:
                         if not adv:
                             continue
+                        
                         if _is_target_device(adv):
-                            logger.info(
-                                "Found CASIO device:", adv.name(),
-                                "at", _format_addr(adv.device.addr)
-                            )
-                            watch_info.set_name_and_model(adv.name())
+                            name = adv.name()
+                            print("Found device:", name, "at", _format_addr(adv.device.addr))
+                            watch_info.set_name_and_model(name)
                             found = adv.device
                             break
                 if not found:
@@ -75,10 +79,15 @@ class Connection:
             self.device = found
             self.client = await found.connect()
 
+            if name == "TimeServerConfigurator":
+                await self.init_characteristics_map()
+                return True, name
+            
             service = await self.client.service(bluetooth.UUID(CasioConstants.CASIO_MAIN_SERVICE_UUID))
             if service is None:
-                logger.error (f"Could not find service for {CasioConstants.CASIO_MAIN_SERVICE_UUID}")
-                return False
+                error = f"Could not find service for {CasioConstants.CASIO_MAIN_SERVICE_UUID}"
+                logger.error(error)
+                return False, None
 
             # Subscribe to known notifiable characteristics
             for char_uuid in CasioConstants.CASIO_NOTIFY_CHARACTERISTICS:
@@ -88,12 +97,13 @@ class Connection:
                 await data_listener.subscribe(char)
 
             await self.init_characteristics_map()
-            return True
+
+            return True, name
 
         except Exception as e:
             logger.error("Failed to connect to CASIO device: %s" % e)
-            return False
-
+            return False, None
+    
     async def discover_services(self, conn):
         char_map = {}
         services = []
@@ -117,6 +127,52 @@ class Connection:
             logger.error(f"Error during service discovery: {e}")
 
         return char_map
+    
+    async def display_services(self, conn):
+        """
+        Discover and visually display BLE Services and Characteristics.
+        """
+        try:
+            print(f"\n🔍 Discovering BLE Services...{conn.services()}\n")
+            services = []
+            async for service in conn.services():
+                print(f"Discovered service object: {service}")
+                services.append(service)
+
+            if not services:
+                print("⚠️ No services found.")
+                return
+            
+
+            print("📡 Services and Characteristics:\n")
+            for service in services:
+                print(f"🧩 Service UUID: {service.uuid}")
+
+                try:
+                    async for char in service.characteristics():
+                        props = []
+                        p = char.properties
+
+                        if p & 0x02:
+                            props.append("read")
+                        if p & 0x08 or p & 0x04:
+                            props.append("write")
+                        if p & 0x10:
+                            props.append("notify")
+                        if p & 0x20:
+                            props.append("indicate")
+
+                        prop_str = ", ".join(props) if props else "—"
+                        print(f"   └── 🔸 Char UUID: {char.uuid} [{prop_str}]")
+
+                except Exception as ce:
+                    logger.error(f"Error reading characteristics from {service.uuid}: {ce}")
+                    continue
+
+            print("\n✅ Discovery complete.\n")
+
+        except Exception as e:
+            logger.error(f"Error during service discovery: {e}")
 
     async def init_characteristics_map(self):
         self.characteristics_map = await self.discover_services(self.client)
@@ -125,7 +181,6 @@ class Connection:
         gc.collect()
 
         uuid = self.handles_map.get(handle)
-
         if UUID(uuid) not in self.characteristics_map:
             logger.info(f"write failed: handle {handle} not in characteristics map")
             if handle == 13:
@@ -155,6 +210,39 @@ class Connection:
         
         finally:
             gc.collect()
+
+    async def write_logs(self, handle, data):
+        gc.collect()
+
+
+        uuid = self.handles_map.get(handle)
+        if UUID(uuid) not in self.characteristics_map:
+            logger.info(f"write failed: handle {handle} not in characteristics map")
+            if handle == 13:
+                logger.info("Your watch does not support notifications...")
+            return
+
+        char = self.characteristics_map[UUID(uuid)]
+
+        try:
+            await char.write(data, response=True, timeout_ms=6000)
+            await data_listener.smart_subscribe(char, False)
+    
+        except (OSError, GattError, DeviceDisconnectedError) as err:
+            logger.error(f"Connection error sending data to watch: {err}")
+            raise GShockIgnorableException(err)
+
+        except asyncio.TimeoutError as err:
+            logger.error(f"Timeout sending data to watch: {err}")
+            raise GShockIgnorableException(err)
+        
+        except ValueError as err:
+            logger.error(f"Value error sending data to watch: {err}")
+            raise GShockIgnorableException(err)
+        
+        finally:
+            gc.collect()
+
 
     async def disconnect(self):
         if self.client is None:
@@ -186,6 +274,7 @@ class Connection:
         handles_map[0x11] = CasioConstants.CASIO_DATA_REQUEST_SP_CHARACTERISTIC_UUID
         handles_map[0x14] = CasioConstants.CASIO_CONVOY_CHARACTERISTIC_UUID
         handles_map[0xFF] = CasioConstants.SERIAL_NUMBER_STRING
+        handles_map[0xAA] = CasioConstants.LOGS_CHARACTERISTIC_UUID_SHORT
 
         return handles_map
 

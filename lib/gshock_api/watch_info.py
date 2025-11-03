@@ -255,7 +255,7 @@ class WatchInfo:
 
         parts = name.split(" ")
         if len(parts) > 1:
-            shortName = parts[1]  # instead of `parts`
+            shortName = parts[1].strip('\u0000 \t\n\r')
         if not shortName:
             return None  # Could return a dict of defaults or None
 

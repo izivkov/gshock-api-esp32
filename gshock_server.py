@@ -7,7 +7,7 @@ from gshock_api.gshock_api import GshockAPI
 from gshock_api.iolib.button_pressed_io import WatchButton
 from gshock_api.logger import logger
 from gshock_api.watch_info import watch_info
-from gshock_api.exceptions import GShockConnectionError, GShockIgnorableException
+from gshock_api.exceptions import GShockConnectionError, GShockIgnorableException, GShockRateRestrictedWatchException
 from lib.config.config_manager import config_manager
 import lib.utils.utils as utils
 from di import display
@@ -16,7 +16,8 @@ from lib.utils.persistent_store import store
 from gshock_api.always_connected_watch_filter import always_connected_watch_filter as watch_filter
 from di import led, LEDController
 from lib.config.network_time_setter import network_time_setter
-from lib.utils.activity_log import activity_log
+from lib.config.log_sender import log_sender
+from lib.config.activity_log import activity_log
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
@@ -44,6 +45,8 @@ async def gshock_server():
     prompt()
 
     while True:
+        watch_name = "Unknown"
+
         try:
             run_once_key(
                 "show_welcome_screen",
@@ -57,20 +60,27 @@ async def gshock_server():
             connection = Connection()
 
             led.set_mode(LEDController.MODE_PULSATE_GREEN)
-            connected = await connection.connect(watch_filter.connection_filter)
+            connected, name = await connection.connect(watch_filter.connection_filter)
+            print(f"Connection result: {connected}, name: {name}")
+
+            if connected and name == "TimeServerConfigurator":
+                activity_log.get_logs()
+                await log_sender.send_logs(connection, activity_log)
+                continue
+
             led.set_mode(LEDController.MODE_SMOOTH)
 
             if not network_time_setter.is_NTP_set():
                 logger.info("Network time not set on device - cannot sync...")
                 display.show_message("NTP not set - cannot sync")
-                activity_log.add_log("gshock_server", "NTP_NOT_SET", "Network time not set on device - cannot sync")
+                activity_log.add_log(activity_name="Setting Time", status_code="NTP_NOT_SET", message="Network time not set on device - cannot sync")
                 await connection.disconnect()
                 connection = None
                 continue
 
             if not connected:
                 logger.info("Connect attempt failed; retrying...")
-                activity_log.add_log("gshock_server", "CONNECT_FAILED", "Failed to connect to watch")                
+                activity_log.add_log(activity_name="Setting Time", status_code="CONNECT_FAILED", message="Failed to connect to watch")                
                 await asyncio.sleep(1)
                 continue
 
@@ -80,8 +90,9 @@ async def gshock_server():
             time_fmt = config_manager.get("timeformat", "24H")
             formatted_time = f'{utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}'
 
+            watch_name = watch_info.shortName.strip('\u0000 \t\n\r')
             store.add("last_connected", formatted_time)
-            store.add("watch_name", watch_info.name)
+            store.add("watch_name", watch_name)
 
             gc.collect()
             api = GshockAPI(connection)
@@ -91,30 +102,32 @@ async def gshock_server():
             fine_adjustment_secs = 0
             await api.set_time(offset=fine_adjustment_secs)
             logger.info(f"Time set at {utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}")
-            set_mode = "AUTO" if pressed_button is None else "MANUAL" if pressed_button == WatchButton.LOWER_RIGHT else "MANUAL WITH DISPLAY"
-            activity_log.add_log("Setting Time", "TIME_SET", f"Time set to {formatted_time} for watch {watch_info.name.strip('\u0000 \t\n\r')}, mode: {set_mode}")
+            set_mode = "AUTO" if pressed_button is WatchButton.NO_BUTTON else "MANUAL" if pressed_button == WatchButton.LOWER_RIGHT else "MANUAL WITH DISPLAY"
+            activity_log.add_log(activity_name="Setting Time", status_code="TIME_SET", message=f"Time set on {watch_name}, mode: {set_mode}")
 
             if pressed_button == WatchButton.LOWER_LEFT:
                 await show_display(api)
                 pass
             else:
+                print(f">>> calling show_welcome_screen... watch_name: {watch_name}")
+                
                 display.show_welcome_screen("Waiting for connection...",
-                                            watch_name=watch_info.name,
+                                            watch_name=watch_name,
                                             last_sync=formatted_time)
 
             await connection.disconnect()
             connection = None
             gc.collect()
 
-        except (GShockConnectionError, GShockIgnorableException) as e:
-            logger.error("Got error: {}".format(e))
+        except (GShockConnectionError, GShockIgnorableException, GShockRateRestrictedWatchException) as e:
+            logger.error("Got Ignorable error: {}".format(e))
             led.set_mode(LEDController.MODE_BLINK_RED)
-            activity_log.add_log("Setting Time", "ERROR", str(e))
+            # Ignorable, do not set logs
             continue
 
         except Exception as e:
             logger.error("Unknown error: {}".format(e))
-            activity_log.add_log("Setting Time", "ERROR", str(e))  
+            activity_log.add_log(activity_name="Setting Time", status_code="ERROR", message=f"Failed to set time for {watch_name}: {str(e)}")
             led.set_mode(LEDController.MODE_BLINK_RED)
             continue
 
@@ -174,9 +187,7 @@ async def show_display(api: GshockAPI):
         battery = condition.get("battery_level_percent")
         temperature = condition.get("temperature")
 
-        name = watch_info.name
-        short_name = ' '.join(name.strip().split()[1:])
-
+        short_name = watch_info.shortName
         t = time.localtime()
         timeformat = config_manager.get("timeformat", "24H")
         dateformat = config_manager.get("dateformat", "MM/DD")

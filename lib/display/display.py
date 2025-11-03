@@ -221,9 +221,7 @@ class Display:
             margin_bottom = 80
             line_spacing = 4
             lines = []
-            if watch_name is not None:
-                short_name = ' '.join(watch_name.strip().split()[1:])
-                lines.append((f"{short_name}", 2))
+            lines.append((f"{watch_name}", 2))
             lines.append(("", 1))
             lines.append(("Last Synced:", 2))
             lines.append((last_sync, 2))
