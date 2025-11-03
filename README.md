@@ -124,7 +124,7 @@ Reset or Power OFF/ON the device.
 - If not configured, the ESP32 will boot into configuration mode. Once booted, start the Android app. When the red dot at the bottom-right of the app’s screen turns green, the ESP32 controller is connected. (You can also put the server in configuration mode at any time by pressing the BOOT button on the device).
 - Enter your SSID and WiFi password, then press **SUBMIT**. This will create the configuration file on the ESP32, and the device will reboot into server mode.
 
-![Alt Image](docs/TimeServerConfigurator.png)
+![Alt Image](docs/TimeServerConfigurator.png){width=200}
 
 > Note: The app also provides locale information such as date and time format, temperature units (C or F), and color scheme for the server. It is recommended to use the app for setup.
 
@@ -152,7 +152,7 @@ The ESP32 display will automatically dim after 5 minutes and turn off completely
 
 You can examine the activities on your device by using the same Android app you used for configiring the device. Go to the second screen, `Logs`, and you should see something like this:
 
-![Alt Image](docs/TimeServerLogs.png)
+![Alt Image](docs/TimeServerLogs.png){width=200}
 
 Note that only the last 10 enries are kept. Also, the log will reset if the device is reset or umplugged.
 
