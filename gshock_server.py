@@ -64,7 +64,7 @@ async def gshock_server():
             print(f"Connection result: {connected}, name: {name}")
 
             if connected and name == "TimeServerConfigurator":
-                activity_log.get_logs()
+                # activity_log.get_logs()
                 await log_sender.send_logs(connection, activity_log)
                 continue
 
@@ -109,8 +109,6 @@ async def gshock_server():
                 await show_display(api)
                 pass
             else:
-                print(f">>> calling show_welcome_screen... watch_name: {watch_name}")
-                
                 display.show_welcome_screen("Waiting for connection...",
                                             watch_name=watch_name,
                                             last_sync=formatted_time)
