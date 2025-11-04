@@ -103,7 +103,7 @@ async def gshock_server():
             await api.set_time(offset=fine_adjustment_secs)
             logger.info(f"Time set at {utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}")
             set_mode = "AUTO" if pressed_button is WatchButton.NO_BUTTON else "MANUAL" if pressed_button == WatchButton.LOWER_RIGHT else "MANUAL WITH DISPLAY"
-            activity_log.add_log(activity_name="Setting Time", status_code="TIME_SET", message=f"Time set on {watch_name}, mode: {set_mode}")
+            activity_log.add_log(activity_name="Setting Time", status_code="TIME_SET", message=f"Time set on <b>{watch_name}</b>, mode: {set_mode}")
 
             if pressed_button == WatchButton.LOWER_LEFT:
                 await show_display(api)
