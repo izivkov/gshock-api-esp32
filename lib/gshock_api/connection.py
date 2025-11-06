@@ -35,26 +35,13 @@ class Connection:
         def _is_target_device(adv):
             # Define UUIDs as constants at class level or module level
             CASIO_SERVICE_UUID = UUID(0x1804)
-            CONFIG_SERVICE_UUID = UUID(0x2001)
 
             # Get services once, avoid multiple calls
             services = list(adv.services() or [])
-            device_name = adv.name()
-
-            # Early return for config service
-            if CONFIG_SERVICE_UUID in services:
-                return True
 
             # Early return if no Casio service
             if CASIO_SERVICE_UUID not in services:
                 return False
-
-            # Only process name if we have a filter
-            if watch_filter:
-                name = (remove_non_printable(device_name) or "").upper()
-                if not watch_filter(name):
-                    raise GShockRateRestrictedWatchException("Watch connection rate restricted by filter.")
-                    return False
 
             return True
 
@@ -69,7 +56,10 @@ class Connection:
                         
                         if _is_target_device(adv):
                             name = adv.name()
-                            print("Found device:", name, "at", _format_addr(adv.device.addr))
+                            print(
+                                "Found device:", name,
+                                "at", _format_addr(adv.device.addr)
+                            )
                             watch_info.set_name_and_model(name)
                             found = adv.device
                             break
@@ -78,10 +68,6 @@ class Connection:
 
             self.device = found
             self.client = await found.connect()
-
-            if name == "TimeServerConfigurator":
-                await self.init_characteristics_map()
-                return True, name
             
             service = await self.client.service(bluetooth.UUID(CasioConstants.CASIO_MAIN_SERVICE_UUID))
             if service is None:
@@ -127,52 +113,6 @@ class Connection:
 
         return char_map
     
-    async def display_services(self, conn):
-        """
-        Discover and visually display BLE Services and Characteristics.
-        """
-        try:
-            print(f"\n🔍 Discovering BLE Services...{conn.services()}\n")
-            services = []
-            async for service in conn.services():
-                print(f"Discovered service object: {service}")
-                services.append(service)
-
-            if not services:
-                print("⚠️ No services found.")
-                return
-            
-
-            print("📡 Services and Characteristics:\n")
-            for service in services:
-                print(f"🧩 Service UUID: {service.uuid}")
-
-                try:
-                    async for char in service.characteristics():
-                        props = []
-                        p = char.properties
-
-                        if p & 0x02:
-                            props.append("read")
-                        if p & 0x08 or p & 0x04:
-                            props.append("write")
-                        if p & 0x10:
-                            props.append("notify")
-                        if p & 0x20:
-                            props.append("indicate")
-
-                        prop_str = ", ".join(props) if props else "—"
-                        print(f"   └── 🔸 Char UUID: {char.uuid} [{prop_str}]")
-
-                except Exception as ce:
-                    logger.error(f"Error reading characteristics from {service.uuid}: {ce}")
-                    continue
-
-            print("\n✅ Discovery complete.\n")
-
-        except Exception as e:
-            logger.error(f"Error during service discovery: {e}")
-
     async def init_characteristics_map(self):
         self.characteristics_map = await self.discover_services(self.client)
 
@@ -209,32 +149,6 @@ class Connection:
         
         finally:
             gc.collect()
-
-    async def write_logs(self, handle, data):
-        gc.collect()
-
-        uuid = self.handles_map.get(handle)
-        char = self.characteristics_map[UUID(uuid)]
-        print(">>> Writing to log characteristic:", char)
-
-        try:
-            await char.write(data, response=True, timeout_ms=6000)
-    
-        except (OSError, GattError, DeviceDisconnectedError) as err:
-            logger.error(f"Connection error sending: {err}")
-            raise GShockIgnorableException(err)
-
-        except asyncio.TimeoutError as err:
-            logger.error(f"Timeout sending data to watch: {err}")
-            raise GShockIgnorableException(err)
-        
-        except ValueError as err:
-            logger.error(f"Value error sending data to watch: {err}")
-            raise GShockIgnorableException(err)
-        
-        finally:
-            gc.collect()
-
 
     async def disconnect(self):
         if self.client is None:

@@ -16,8 +16,6 @@ from lib.utils.persistent_store import store
 from gshock_api.always_connected_watch_filter import always_connected_watch_filter as watch_filter
 from di import led, LEDController
 from lib.config.network_time_setter import network_time_setter
-from lib.config.log_sender import LogSender
-from lib.config.activity_log import activity_log
 
 __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
@@ -62,24 +60,17 @@ async def gshock_server():
             led.set_mode(LEDController.MODE_PULSATE_GREEN)
             connected, name = await connection.connect(watch_filter.connection_filter)
 
-            if connected and name == "TimeServerConfigurator":
-                await LogSender(connection=connection, activity_log=activity_log).send_logs()
-                continue
-
             led.set_mode(LEDController.MODE_SMOOTH)
 
             if not network_time_setter.is_NTP_set():
                 logger.info("Network time not set on device - cannot sync...")
                 display.show_message("NTP not set - cannot sync")
-                activity_log.add_log(activity_name="Setting Time", status_code="NTP_NOT_SET", message="Network time not set on device - cannot sync")
                 await connection.disconnect()
                 connection = None
                 continue
 
             if not connected:
                 logger.info(f"Connect attempt failed for {name}; retrying...")
-                if name != "TimeServerConfigurator" and name is not None: # Do not report errors for configurator connections
-                    activity_log.add_log(activity_name="Setting Time", status_code="CONNECT_FAILED", message="Failed to connect to watch")                
 
                 await asyncio.sleep(1)
                 continue
@@ -102,8 +93,6 @@ async def gshock_server():
             fine_adjustment_secs = 0
             await api.set_time(offset=fine_adjustment_secs)
             logger.info(f"Time set at {utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}")
-            set_mode = "AUTO" if pressed_button is WatchButton.NO_BUTTON else "MANUAL" if pressed_button == WatchButton.LOWER_RIGHT else "MANUAL WITH DISPLAY"
-            activity_log.add_log(activity_name="Setting Time", status_code="TIME_SET", message=f"Time set on <b>{watch_name}</b>, mode: {set_mode}")
 
             if pressed_button == WatchButton.LOWER_LEFT:
                 await show_display(api)
@@ -123,8 +112,6 @@ async def gshock_server():
 
         except Exception as e:
             logger.error("Unknown error: {}".format(e))
-            if watch_name != "Unknown":
-                activity_log.add_log(activity_name="Setting Time", status_code="ERROR", message=f"Failed to set time for {watch_name}: {str(e)}")
             led.set_mode(LEDController.MODE_BLINK_RED)
             continue
 
