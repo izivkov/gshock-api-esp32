@@ -78,17 +78,6 @@ pip install mpremote
 
 **Deploy the Server Software:**  
 
-Here is the structure of the server software files:
-
-- `main.py` – Main entry point for the ESP32 server  
-- `config_server.py` – Configuration server used to connect to the supporting Android app and receive configuration information  
-- `gshock_server.py` / `gshock_server_no_display.py` – Main G-Shock server logic (with/without display)  
-- `lib/` – Core libraries:  
-  - `display/` – Display and LED control (ST7789, fonts, icons)  
-  - `config/` – Configuration management  
-  - `gshock_api/` – Software to connect and communicate with G-Shock watches  
-  - `utils/` – Utility functions and persistent storage  
-
 Copy project files to the ESP32:
 ```
 python sync.py
@@ -160,7 +149,19 @@ python sync.py
 ```
 ***
 
-### 7. Troubleshooting
+### 7. Software Structure
+Here is the structure of the server software files:
+
+- `main.py` – Main entry point for the ESP32 server  
+- `config_server.py` – Configuration server used to connect to the supporting Android app and receive configuration information  
+- `gshock_server.py` / `gshock_server_no_display.py` – Main G-Shock server logic (with/without display)  
+- `lib/` – Core libraries:  
+  - `display/` – Display and LED control (ST7789, fonts, icons)  
+  - `config/` – Configuration management  
+  - `gshock_api/` – Software to connect and communicate with G-Shock watches  
+  - `utils/` – Utility functions and persistent storage  
+
+### 8. Troubleshooting
 
 If you see nothing on the screen, or the device keeps rebooting, run the server manually and look at the output for any problems:
 
