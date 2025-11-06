@@ -5,7 +5,6 @@ class LogSender:
 
     async def send_logs(self, connection, activity_log):
         log_data = activity_log.to_json()  # Get JSON string
-        self.print_dates(log_data)
 
         log_bytes = log_data.encode('utf-8') 
         
@@ -27,6 +26,7 @@ class LogSender:
         # Iterate through each log entry in the list
         for entry in log_list:
             # Access and print the "datetime" field
+            print(f"->>> sending msg with date {entry['datetime']}")
 
 
 log_sender = LogSender()
