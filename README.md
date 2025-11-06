@@ -137,7 +137,7 @@ The ESP32 display will automatically dim after 5 minutes and turn off completely
 
 ***
 
-### 6. Updating the software
+### 5. Updating the software
 
 If there is a new version of the software in this repository, you can update it on your device as follows:
 
@@ -149,7 +149,7 @@ python sync.py
 ```
 ***
 
-### 7. Software Structure
+### 6. Software Structure
 Here is the structure of the server software files:
 
 - `main.py` – Main entry point for the ESP32 server  
@@ -161,7 +161,7 @@ Here is the structure of the server software files:
   - `gshock_api/` – Software to connect and communicate with G-Shock watches  
   - `utils/` – Utility functions and persistent storage  
 
-### 8. Troubleshooting
+### 7. Troubleshooting
 
 If you see nothing on the screen, or the device keeps rebooting, run the server manually and look at the output for any problems:
 
