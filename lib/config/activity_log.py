@@ -27,6 +27,7 @@ class ActivityLog:
         log_message = LogMessage(datetime, activity_name, status_code, message)
         self.logs.append(log_message)
         # Maintain FIFO, trim oldest if exceeded max_size
+
         if len(self.logs) > self.max_size:
             self.logs.pop(0)
 

@@ -97,11 +97,10 @@ class Connection:
                 await data_listener.subscribe(char)
 
             await self.init_characteristics_map()
-
             return True, name
 
         except Exception as e:
-            logger.error("Failed to connect to CASIO device: %s" % e)
+            logger.error(f"Failed to connect to device [{name}]: {e}")
             return False, None
     
     async def discover_services(self, conn):
@@ -214,22 +213,14 @@ class Connection:
     async def write_logs(self, handle, data):
         gc.collect()
 
-
         uuid = self.handles_map.get(handle)
-        if UUID(uuid) not in self.characteristics_map:
-            logger.info(f"write failed: handle {handle} not in characteristics map")
-            if handle == 13:
-                logger.info("Your watch does not support notifications...")
-            return
-
         char = self.characteristics_map[UUID(uuid)]
 
         try:
             await char.write(data, response=True, timeout_ms=6000)
-            await data_listener.smart_subscribe(char, False)
     
         except (OSError, GattError, DeviceDisconnectedError) as err:
-            logger.error(f"Connection error sending data to watch: {err}")
+            logger.error(f"Connection error sending: {err}")
             raise GShockIgnorableException(err)
 
         except asyncio.TimeoutError as err:

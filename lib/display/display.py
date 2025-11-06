@@ -218,8 +218,6 @@ class Display:
         Display welcome/status screen with watch name, last sync, and message.
         """
         try:
-            print ("Displaying welcome screen, wtach_name={}, last_sync={}, message={}".format(watch_name, last_sync, message))
-            
             margin_bottom = 80
             line_spacing = 4
             lines = []

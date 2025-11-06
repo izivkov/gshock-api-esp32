@@ -61,10 +61,8 @@ async def gshock_server():
 
             led.set_mode(LEDController.MODE_PULSATE_GREEN)
             connected, name = await connection.connect(watch_filter.connection_filter)
-            print(f"Connection result: {connected}, name: {name}")
 
             if connected and name == "TimeServerConfigurator":
-                # activity_log.get_logs()
                 await log_sender.send_logs(connection, activity_log)
                 continue
 
@@ -79,8 +77,10 @@ async def gshock_server():
                 continue
 
             if not connected:
-                logger.info("Connect attempt failed; retrying...")
-                activity_log.add_log(activity_name="Setting Time", status_code="CONNECT_FAILED", message="Failed to connect to watch")                
+                logger.info(f"Connect attempt failed for {name}; retrying...")
+                if name != "TimeServerConfigurator" and name is not None: # Do not report errors for configurator connections
+                    activity_log.add_log(activity_name="Setting Time", status_code="CONNECT_FAILED", message="Failed to connect to watch")                
+
                 await asyncio.sleep(1)
                 continue
 
@@ -118,21 +118,19 @@ async def gshock_server():
             gc.collect()
 
         except (GShockConnectionError, GShockIgnorableException, GShockRateRestrictedWatchException) as e:
-            logger.error("Got Ignorable error: {}".format(e))
-            led.set_mode(LEDController.MODE_BLINK_RED)
             # Ignorable, do not set logs
             continue
 
         except Exception as e:
             logger.error("Unknown error: {}".format(e))
-            activity_log.add_log(activity_name="Setting Time", status_code="ERROR", message=f"Failed to set time for {watch_name}: {str(e)}")
+            if watch_name != "Unknown":
+                activity_log.add_log(activity_name="Setting Time", status_code="ERROR", message=f"Failed to set time for {watch_name}: {str(e)}")
             led.set_mode(LEDController.MODE_BLINK_RED)
             continue
 
         finally:
             gc.collect()
             led.set_mode(LEDController.MODE_BLINK_RED)
-            print(f"Activity Log: {activity_log.to_json()}")
 
 def get_next_alarm_time(alarms):
     now = time.localtime()  # (year, month, mday, hour, minute, second, weekday, yearday)

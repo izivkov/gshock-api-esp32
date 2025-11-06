@@ -9,13 +9,11 @@ class NetworkTimeSetter:
     def __init__(self):
         self.wlan = network.WLAN(network.STA_IF)
         self.timezone_set = False
-        time.sleep_ms(200)
 
     def _connect_wifi(self, ssid, password):
         self.wlan.active(False)    
         while not self.wlan.active():
             self.wlan.active(True)
-            time.sleep_ms(200)
 
         if not self.wlan.isconnected():
             print(f"Connecting to WiFi SSID: {ssid}...")
@@ -27,7 +25,6 @@ class NetworkTimeSetter:
             while not self.wlan.isconnected():
                 if time.time() - start > timeout:
                     raise Exception("Failed to connect to WiFi: Timeout")
-                time.sleep(1)
 
         print("Network config:", self.wlan.ifconfig())
 
