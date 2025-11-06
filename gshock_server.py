@@ -16,7 +16,7 @@ from lib.utils.persistent_store import store
 from gshock_api.always_connected_watch_filter import always_connected_watch_filter as watch_filter
 from di import led, LEDController
 from lib.config.network_time_setter import network_time_setter
-from lib.config.log_sender import log_sender
+from lib.config.log_sender import LogSender
 from lib.config.activity_log import activity_log
 
 __author__ = "Ivo Zivkov"
@@ -63,7 +63,7 @@ async def gshock_server():
             connected, name = await connection.connect(watch_filter.connection_filter)
 
             if connected and name == "TimeServerConfigurator":
-                await log_sender.send_logs(connection, activity_log)
+                await LogSender(connection=connection, activity_log=activity_log).send_logs()
                 continue
 
             led.set_mode(LEDController.MODE_SMOOTH)

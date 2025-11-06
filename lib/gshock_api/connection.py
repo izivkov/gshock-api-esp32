@@ -215,6 +215,7 @@ class Connection:
 
         uuid = self.handles_map.get(handle)
         char = self.characteristics_map[UUID(uuid)]
+        print(">>> Writing to log characteristic:", char)
 
         try:
             await char.write(data, response=True, timeout_ms=6000)
