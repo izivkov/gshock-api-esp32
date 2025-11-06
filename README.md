@@ -148,16 +148,6 @@ The ESP32 display will automatically dim after 5 minutes and turn off completely
 
 ***
 
-### 5. Logs
-
-You can examine the activities on your device by using the same Android app you used for configiring the device. Go to the second screen, `Logs`, and you should see something like this:
-
-<img src="docs/TimeServerLogs.png" alt="Alt Image" width="200">
-
-Note that only the last 10 enries are kept. Also, the log will reset if the device is reset or umplugged.
-
-***
-
 ### 6. Updating the software
 
 If there is a new version of the software in this repository, you can update it on your device as follows:
