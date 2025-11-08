@@ -7,8 +7,10 @@ import gc
 
 # --- CONFIG ---
 # Use your actual UUIDs
-SERVICE_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef0")
-LOG_CHAR_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef1")
+# SERVICE_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef0")
+# LOG_CHAR_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef1")
+SERVICE_UUID = bluetooth.UUID(0x1001)
+LOG_CHAR_UUID = bluetooth.UUID(0x1002)
 
 # --- GATT Service Setup ---
 service = aioble.Service(SERVICE_UUID)
