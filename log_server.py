@@ -2,58 +2,80 @@ import uasyncio as asyncio
 import aioble
 import bluetooth
 import json
+from gshock_server import activity_log
 
 SERVICE_UUID = bluetooth.UUID(0x1001)
 LOG_CHAR_UUID = bluetooth.UUID(0x1002)
 
 # --- GATT Service Setup ---
 service = aioble.Service(SERVICE_UUID)
+aioble.register_services(service)
 
 log_char = aioble.Characteristic(
     service,
     LOG_CHAR_UUID,
     read=True,
-    write=True,  # This allows the Android app to write the "START" command
-    notify=True,  # This allows the ESP32 to send notifications
+    write=True,
+    notify=True,
     capture=True
 )
 
 aioble.register_services(service)
 
-# Example log storage
-logs = [
-    {"event": "watch_connected", "time": "12:00"},
-    {"event": "time_synced", "time": "12:01"}
-]
+async def on_new_log(log_message):
+    send_log(None, log_message.to_dict())
 
-async def send_logs(connection):
+activity_log.set_on_add (on_new_log)
+
+async def send_notify_safe(connection, data):
+    """Send notification safely, handling potential exceptions."""
+    try:
+        await log_char.notify(connection, data)
+    except TypeError:
+        # Ignore occasional NoneType issues from BLE library quirks
+        pass
+
+async def send_log(connection, log):
+    """Send a single log entry as JSON, chunked without header."""
     if not connection.is_connected():
         print("Connection lost before sending.")
         return
 
-    data = json.dumps(logs).encode('utf-8')
+    # Convert dict to JSON bytes
+    log_data = json.dumps(log).encode('utf-8')
     chunk_size = 17
 
-    for i in range(0, len(data), chunk_size):
-        chunk = data[i:i + chunk_size]
-        try:
+    try:
+        for i in range(0, len(log_data), chunk_size):
             if not connection.is_connected():
                 print("Connection lost during notify.")
-                break
-            
-            await log_char.notify(connection, chunk)
+                return
 
-        except TypeError:
-            # For some reason getting: ['NoneType' object isn't iterable] message
-            # Ignore and continue
-            ...
+            chunk = log_data[i:i + chunk_size]
+            await send_notify_safe(connection, chunk)
 
-        except Exception as e:
-            print("Notify failed:", e)
-            print("Exception type:", type(e))
-            break
+        print("✅ Finished sending one log.")
 
-    print("Finished sending logs.")
+    except Exception as e:
+        print("Notify failed:", e)
+        print("Exception type:", type(e).__name__)
+
+
+async def send_logs(connection):
+    """Send all logs one by one."""
+    if not connection.is_connected():
+        print("Connection lost before sending.")
+        return
+
+    logs = activity_log.get_logs()
+    print(f"type of logs: {type(logs).__name__}")
+
+    for log in logs:
+        # Convert LogMessage to dict, then send
+        await send_log(connection, log.to_dict())
+
+    print("✅ Finished sending all logs.")
+
 
 # --- BLE Server / Peripheral Logic ---
 async def ble_logger():
@@ -66,6 +88,7 @@ async def ble_logger():
         )
 
         connection = await adv
+        print("🔵 Device connected.")
 
         try:
             # Wait for Android to send "START"
