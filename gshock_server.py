@@ -110,6 +110,7 @@ async def gshock_server():
             gc.collect()
 
         except (GShockConnectionError, GShockIgnorableException, GShockRateRestrictedWatchException) as e:
+            print(f"Got ignorable exception {e}")
             # Ignorable, do not set logs
             continue
 

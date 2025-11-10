@@ -38,10 +38,18 @@ class Connection:
 
             # Get services once, avoid multiple calls
             services = list(adv.services() or [])
-
+            device_name = adv.name()
+            
             # Early return if no Casio service
             if CASIO_SERVICE_UUID not in services:
                 return False
+
+            # Only process name if we have a filter
+            if watch_filter:
+                name = (remove_non_printable(device_name) or "").upper()
+                if not watch_filter(name):
+                    raise GShockRateRestrictedWatchException("Watch connection rate restricted by filter.")
+                    # return False
 
             return True
 
@@ -86,6 +94,10 @@ class Connection:
             return True, name
 
         except Exception as e:
+            # Handle this in the main loop
+            if isinstance(e, GShockRateRestrictedWatchException):
+                    raise 
+            
             logger.error(f"Failed to connect to device [{name}]: {e}")
             return False, None
     
