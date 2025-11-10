@@ -30,7 +30,6 @@ log_sender = None
 
 async def on_new_log(log_message):
     if log_sender:
-        print("on_new_log: New log added, sending via BLE...")
         await log_sender.send_log(log_message.to_dict())
     else:
         print("Log sender not initialized yet.")    
@@ -57,7 +56,6 @@ async def ble_logger():
         try:
             # Wait for Android to send "START" command and send logs
             while connection.is_connected():
-                print("Waiting for START command...")
                 connection, data = await log_char.written()
                 cmd = data.decode().strip()
                 if cmd == "START":
@@ -72,10 +70,7 @@ async def ble_logger():
             print("Error:", e)
 
         finally:
-            print("finally called...exiting connection scope")
             gc.collect()
-
-        print("Device disconnected, resuming advertising loop")
 
 # --- Main entry ---
 async def main():
