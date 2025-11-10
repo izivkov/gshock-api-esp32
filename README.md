@@ -143,7 +143,7 @@ You can examine the activities on your device by using the same Android app you 
 
 <img src="docs/TimeServerLogs.png" alt="Alt Image" width="200">
 
-Note that only the last 10 entries are kept. Also, the log will reset if the devide is reset or umplugged.
+Note that only the last 10 entries are kept. Also, the log will reset if the device is reset or umplugged.
 
 ### Updating the software
 
