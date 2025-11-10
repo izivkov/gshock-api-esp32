@@ -27,7 +27,7 @@ class ActivityLog:
         print("ActivityLog: setting on_add callback")
         self._on_add = callback
 
-    def add_log(self, activity_name, status_code, message, datetime=None):
+    async def add_log(self, activity_name, status_code, message, datetime=None):
         if datetime is None:
             datetime = localtime()[:6]
 
@@ -40,7 +40,7 @@ class ActivityLog:
 
         # Trigger callback
         if self._on_add:
-            self._on_add(log_message)
+            await self._on_add(log_message)
 
     def get_logs(self):
         """Return a copy of all unsent logs (for initial sync)."""

@@ -1,8 +1,9 @@
 import uasyncio as asyncio
 import aioble
 import bluetooth
-import json
-from gshock_server import activity_log
+import gc
+from lib.logs.log_sender import LogSender
+from lib.logs.activity_log import activity_log
 
 SERVICE_UUID = bluetooth.UUID(0x1001)
 LOG_CHAR_UUID = bluetooth.UUID(0x1002)
@@ -21,64 +22,21 @@ log_char = aioble.Characteristic(
 )
 
 aioble.register_services(service)
+log_sender = None
 
 async def on_new_log(log_message):
-    send_log(None, log_message.to_dict())
+    if log_sender:
+        print("on_new_log: New log added, sending via BLE...")
+        await log_sender.send_log(log_message.to_dict())
+    else:
+        print("Log sender not initialized yet.")    
 
+# There is only one instance of activity_log, and is being updated from gshock_server
 activity_log.set_on_add (on_new_log)
 
-async def send_notify_safe(connection, data):
-    """Send notification safely, handling potential exceptions."""
-    try:
-        await log_char.notify(connection, data)
-    except TypeError:
-        # Ignore occasional NoneType issues from BLE library quirks
-        pass
-
-async def send_log(connection, log):
-    """Send a single log entry as JSON, chunked without header."""
-    if not connection.is_connected():
-        print("Connection lost before sending.")
-        return
-
-    # Convert dict to JSON bytes
-    log_data = json.dumps(log).encode('utf-8')
-    chunk_size = 17
-
-    try:
-        for i in range(0, len(log_data), chunk_size):
-            if not connection.is_connected():
-                print("Connection lost during notify.")
-                return
-
-            chunk = log_data[i:i + chunk_size]
-            await send_notify_safe(connection, chunk)
-
-        print("✅ Finished sending one log.")
-
-    except Exception as e:
-        print("Notify failed:", e)
-        print("Exception type:", type(e).__name__)
-
-
-async def send_logs(connection):
-    """Send all logs one by one."""
-    if not connection.is_connected():
-        print("Connection lost before sending.")
-        return
-
-    logs = activity_log.get_logs()
-    print(f"type of logs: {type(logs).__name__}")
-
-    for log in logs:
-        # Convert LogMessage to dict, then send
-        await send_log(connection, log.to_dict())
-
-    print("✅ Finished sending all logs.")
-
-
-# --- BLE Server / Peripheral Logic ---
 async def ble_logger():
+    global log_sender
+
     while True:
         print("Advertising logs service...")
         adv = aioble.advertise(
@@ -90,27 +48,34 @@ async def ble_logger():
         connection = await adv
         print("🔵 Device connected.")
 
+        log_sender = LogSender(activity_log, connection, log_char)
+
         try:
-            # Wait for Android to send "START"
+            # Wait for Android to send "START" command and send logs
             while connection.is_connected():
                 print("Waiting for START command...")
                 connection, data = await log_char.written()
                 cmd = data.decode().strip()
                 if cmd == "START":
-                    await send_logs(connection)
+                    await log_sender.send_logs(activity_log.get_logs())
                     break
 
-            await connection.disconnect()
+            # After sending logs, *keep* waiting until device disconnects
+            while connection.is_connected():
+                await asyncio.sleep(1)  # or small delay to avoid busy loop
 
         except Exception as e:
             print("Error:", e)
-        finally:
-            print("Disconnected.")
-            await asyncio.sleep(2)
 
+        finally:
+            print("finally called...exiting connection scope")
+            gc.collect()
+
+        print("Device disconnected, resuming advertising loop")
 
 # --- Main entry ---
 async def main():
     await ble_logger()
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

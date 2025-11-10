@@ -2,6 +2,7 @@ import uasyncio as asyncio
 from machine import Pin
 import config_server
 import gshock_server
+import log_server
 from lib.config.config_manager import config_manager
 import gc
 
@@ -54,11 +55,12 @@ async def main():
 
         await init()
         server_task = asyncio.create_task(gshock_server.main())
+        logger_task = asyncio.create_task(log_server.main())
 
     watcher_task = asyncio.create_task(watch_boot_button(start_config_mode))
 
     # Run all concurrently
-    await asyncio.gather(server_task, watcher_task)
+    await asyncio.gather(server_task, logger_task, watcher_task)
 
 # Starting support processes...
 async def init():
