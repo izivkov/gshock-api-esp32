@@ -5,6 +5,10 @@ import gc
 from lib.logs.log_sender import LogSender
 from lib.logs.activity_log import activity_log
 
+"""
+This module connects to an Android App and sends activity logs.
+"""
+
 SERVICE_UUID = bluetooth.UUID(0x1001)
 LOG_CHAR_UUID = bluetooth.UUID(0x1002)
 
