@@ -12,7 +12,7 @@ This project provides an **ESP32-based** time server for Casio G-Shock watches. 
 
 Just like your G-Shock itself, it’s designed to be set-and-forget. Just start the server once—it will run reliably for months with no user intervention.
 
-<audio controls src="https://notebooklm.google.com/notebook/1b37df87-a774-4104-94d4-2f3c52e2674c?artifactId=9c07d407-b36d-4038-8ae6-7c2a81171adb"></audio>
+<audio controls src="docs/audio-overview.m4a"></audio>
 
 ***
 
