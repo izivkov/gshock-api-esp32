@@ -72,7 +72,6 @@ async def gshock_server():
 
             if not connected:
                 logger.info(f"Connect attempt failed for {name}; retrying...")                
-                await activity_log.add_log(activity_name="Setting Time", status_code="CONNECT_FAILED", message="Failed to connect to watch")                
                 await asyncio.sleep(1)
                 continue
 
@@ -108,11 +107,6 @@ async def gshock_server():
             await connection.disconnect()
             connection = None
             gc.collect()
-
-        except (GShockConnectionError, GShockIgnorableException, GShockRateRestrictedWatchException) as e:
-            print(f"Got ignorable exception {e}")
-            # Ignorable, do not set logs
-            continue
 
         except Exception as e:
             logger.error("Unknown error: {}".format(e))

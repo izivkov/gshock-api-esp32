@@ -12,6 +12,6 @@ class GShockIgnorableException(GShockConnectionError):
     """Raised when BLE connection to G-Shock device fails."""    
     pass
 
-class GShockRateRestrictedWatchException(GShockConnectionError):
+class GShockRateRestrictedWatchException(GShockIgnorableException):
     """This watch is rate-restricted to reduce using BLE connection."""    
     pass

@@ -1,3 +1,4 @@
+from lib.gshock_api.exceptions import GShockConnectionError
 import uasyncio as asyncio
 import aioble
 from aioble import DeviceDisconnectedError, GattError  # Micropython aioble exception
@@ -49,7 +50,6 @@ class Connection:
                 name = (remove_non_printable(device_name) or "").upper()
                 if not watch_filter(name):
                     raise GShockRateRestrictedWatchException("Watch connection rate restricted by filter.")
-                    # return False
 
             return True
 
@@ -95,11 +95,11 @@ class Connection:
 
         except Exception as e:
             # Handle this in the main loop
-            if isinstance(e, GShockRateRestrictedWatchException):
-                    raise 
-            
-            logger.error(f"Failed to connect to device [{name}]: {e}")
-            return False, None
+            if isinstance(e, GShockIgnorableException):
+                logger.error(f"Ignorable Connection Error, ignore [{name}]: {e}")
+                return False, name
+            else:
+                raise
     
     async def discover_services(self, conn):
         char_map = {}
