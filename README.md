@@ -70,7 +70,7 @@ Some advances watches are **NOT** compatible with the device. They have a differ
 | MRG-BF1000 | 5702    | Server does not recognizes connection attempt                                         | 
 | GB-X6900 	 | 3418 	 | Server does not recognizes connection attempt                                         | 
 
-We are looking for feedback about the accuracy of this table, so please comment in the **Issues** section with any disrepancies.
+We are looking for feedback about the accuracy of this table, so please comment in the **Issues** section with any discrepancies.
 
 ## Requirements
 
