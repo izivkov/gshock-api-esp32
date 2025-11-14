@@ -45,6 +45,8 @@ Works with many **G-Shock**, **Edifice**, and **Pro Trek** variants. Here are th
 | GST-B200           | 5608                 |
 | MSG-B100           | 5659                 |
 | G-B001             | 3519                 |
+| GR-B200            | 5635                 |
+| GPR-B1000          | 3452                 |
 | GBD-800            | 3464                 |
 | GBD-H1000          | 3475                 |
 | MRG-B5000          | 3541                 |
@@ -55,8 +57,19 @@ Works with many **G-Shock**, **Edifice**, and **Pro Trek** variants. Here are th
 | Edifice ECB-20     | 5638, 5603           |
 | Edifice ECB-30     | 5686, 5672           |
 
-We are looking for feedback about the accuracy of this table, so please comment in the **Issues** section with any disrepancies.
+**Watches that Dont Work**
 
+Some advances watches are **NOT** compatible with the device. Thye have a different way of connecting to the server, and usually stay connected.
+
+| Subseries | 	Module | 	Manual Sync | 	Automatic Sync | 	Comment | 
+| GWF-A1000 | 	5623 | 	No | 	No | 	Server recognizes watch, but throws error message | 
+| GST-B100 	| 5513 | 	No | 	No | 	Server does not recognizes connection attempt | 
+| GPR-H1000 | 3554 | 	No | 	No | 	Server recognizes watch, but throws error message "Failed to connect to Casio device" | 
+| GPW-2000 	| 5502 | 	No | 	No | 	Server does not recognizes connection attempt | 
+| MRG-BF1000 | 5702 | 	No | 	No | 	Server does not recognizes connection attempt | 
+| GB-X6900 	| 3418 	| No | 	No | 	Server does not recognizes connection attempt | 
+
+We are looking for feedback about the accuracy of this table, so please comment in the **Issues** section with any disrepancies.
 
 ## Requirements
 
