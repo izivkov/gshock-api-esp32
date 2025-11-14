@@ -61,8 +61,9 @@ Works with many **G-Shock**, **Edifice**, and **Pro Trek** variants. Here are th
 
 Some advances watches are **NOT** compatible with the device. Thye have a different way of connecting to the server, and usually stay connected.
 
-| Subseries  | 	Module | Manual Sync | 	Automatic Sync | Comment                                                                               | 
-| GWF-A1000  | 	5623   | No          | 	No             | Server recognizes watch, but throws error message                                     | 
+| Subseries  | Module  | Manual Sync | 	Automatic Sync | Comment                                                                               |
+|----------------------------------------------------------------------------------------------------------------------------------------------|
+| GWF-A1000  | 5623    | No          | 	No             | Server recognizes watch, but throws error message                                     | 
 | GST-B100 	 | 5513    | No          | 	No             | Server does not recognizes connection attempt                                         | 
 | GPR-H1000  | 3554    | No          | 	No             | Server recognizes watch, but throws error message "Failed to connect to Casio device" | 
 | GPW-2000 	 | 5502    | No          | 	No             | Server does not recognizes connection attempt                                         | 
