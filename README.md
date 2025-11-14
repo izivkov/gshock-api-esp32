@@ -59,7 +59,7 @@ Works with many **G-Shock**, **Edifice**, and **Pro Trek** variants. Here are th
 
 **Watches that Dont Work**
 
-Some advances watches are **NOT** compatible with the device. Thye have a different way of connecting to the server, and usually stay connected.
+Some advances watches are **NOT** compatible with the device. They have a different way of connecting to the server. Here are some test results.
 
 | Subseries  | Module  | Comment                                                                               |
 |------------|---------|---------------------------------------------------------------------------------------|
