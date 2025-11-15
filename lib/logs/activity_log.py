@@ -2,18 +2,20 @@ import json
 from time import localtime
 
 class LogMessage:
-    def __init__(self, datetime, activity_name, status_code, message):
+    def __init__(self, datetime, activity_name, status_code, watch_name, message):
         self.datetime = datetime
         self.activity_name = activity_name
         self.status_code = status_code
         self.message = message
+        self.watch_name = watch_name
 
     def to_dict(self):
         return {
             'datetime': self.datetime,
             'activity_name': self.activity_name,
             'status_code': self.status_code,
-            'message': self.message
+            'message': self.message,
+            'watch_name': self.watch_name
         }
 
 class ActivityLog:
@@ -27,11 +29,11 @@ class ActivityLog:
         print("ActivityLog: setting on_add callback")
         self._on_add = callback
 
-    async def add_log(self, activity_name, status_code, message, datetime=None):
+    async def add_log(self, activity_name, status_code, message, watch_name, datetime=None):
         if datetime is None:
             datetime = localtime()[:6]
 
-        log_message = LogMessage(datetime, activity_name, status_code, message)
+        log_message = LogMessage(datetime, activity_name, status_code, watch_name, message)
         self.logs.append(log_message)
 
         # Keep logs within max_size (oldest first)

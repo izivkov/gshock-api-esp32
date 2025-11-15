@@ -7,7 +7,6 @@ from gshock_api.gshock_api import GshockAPI
 from gshock_api.iolib.button_pressed_io import WatchButton
 from gshock_api.logger import logger
 from gshock_api.watch_info import watch_info
-from gshock_api.exceptions import GShockConnectionError, GShockIgnorableException, GShockRateRestrictedWatchException
 from lib.config.config_manager import config_manager
 import lib.utils.utils as utils
 from di import display
@@ -94,7 +93,7 @@ async def gshock_server():
             await api.set_time(offset=fine_adjustment_secs)
             logger.info(f"Time set at {utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}")
             set_mode = "AUTO" if pressed_button is WatchButton.NO_BUTTON else "MANUAL" if pressed_button == WatchButton.LOWER_RIGHT else "MANUAL WITH DISPLAY"
-            await activity_log.add_log(activity_name="Setting Time", status_code="TIME_SET", message=f"Time set on <b>{watch_name}</b>, mode: {set_mode}")
+            await activity_log.add_log(activity_name="Setting Time", status_code="TIME_SET", watch_name=watch_name, message=f"Time set in <b>{set_mode}</b> mode")
 
             if pressed_button == WatchButton.LOWER_LEFT:
                 await show_display(api)
@@ -110,7 +109,7 @@ async def gshock_server():
 
         except Exception as e:
             logger.error("Unknown error: {}".format(e))
-            await activity_log.add_log(activity_name="Setting Time", status_code="ERROR", message=f"Failed to set time for {watch_name}: {str(e)}")
+            await activity_log.add_log(activity_name="Setting Time", status_code="ERROR", watch_name=watch_name, message=f"Failed to set time with error: {str(e)}")
             led.set_mode(LEDController.MODE_BLINK_RED)
             continue
 
