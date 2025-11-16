@@ -52,6 +52,7 @@ Works with many **G-Shock**, **Edifice**, and **Pro Trek** variants. Here are th
 | MRG-B5000          | 3541                 |
 | GCW-B5000          | 3543                 |
 | GG-B100            | 5594, 5595           |
+| GST-B100           | 5513                 |
 | ABL-100WE          | 3565                 |
 | Edifice ECB-10     | 5618, 5604           |
 | Edifice ECB-20     | 5638, 5603           |
@@ -64,7 +65,6 @@ Some advances watches are **NOT** compatible with the device. They have a differ
 | Subseries  | Module  | Comment                                                                               |
 |------------|---------|---------------------------------------------------------------------------------------|
 | GWF-A1000  | 5623    | Server recognizes watch, but throws error message                                     | 
-| GST-B100 	 | 5513    | Server does not recognizes connection attempt                                         | 
 | GPR-H1000  | 3554    | Server recognizes watch, but throws error message "Failed to connect to Casio device" | 
 | GPW-2000 	 | 5502    | Server does not recognizes connection attempt                                         | 
 | MRG-BF1000 | 5702    | Server does not recognizes connection attempt                                         | 
