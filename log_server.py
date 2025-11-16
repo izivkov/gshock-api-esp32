@@ -48,23 +48,23 @@ async def ble_logger():
             services=[SERVICE_UUID]
         )
 
-        connection = await adv
-        print("🔵 Device connected.")
-
-        log_sender = LogSender(activity_log, connection, log_char)
-
         try:
-            # Wait for Android to send "START" command and send logs
+            connection = await adv
+            print("🔵 Device connected.")
+
+            log_sender = LogSender(activity_log, connection, log_char)
+
+            # Main interaction loop while device is connected
             while connection.is_connected():
                 connection, data = await log_char.written()
                 cmd = data.decode().strip()
                 if cmd == "START":
                     await log_sender.send_logs(activity_log.get_logs())
-                    break
+                    # After sending logs, continue waiting for disconnection
+                    while connection.is_connected():
+                        await asyncio.sleep(1)
 
-            # After sending logs, *keep* waiting until device disconnects
-            while connection.is_connected():
-                await asyncio.sleep(1)  # or small delay to avoid busy loop
+            print("🔴 Device disconnected, restarting advertising.")
 
         except Exception as e:
             print("Error:", e)
