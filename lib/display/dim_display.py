@@ -40,13 +40,6 @@ class DimDisplay:
                 if not self._off and now >= off_at:
                     self.display.set_brightness(0)   # Off
                     self._off = True
-                # If backlight is off, only power on at touch
-                if self._off and self.touch.read():
-                    self.display.set_brightness(100)
-                    self._dimmed = False
-                    self._off = False
-                    dim_at = time.time() + self.timeout_dim
-                    off_at = time.time() + self.timeout_off
 
     def start(self):
         """Start the dimming task. Set threshold based on your touch hardware."""
