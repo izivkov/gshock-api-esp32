@@ -1,4 +1,4 @@
-from lib.gshock_api.exceptions import GShockConnectionError
+
 import uasyncio as asyncio
 import aioble
 from aioble import DeviceDisconnectedError, GattError  # Micropython aioble exception

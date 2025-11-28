@@ -1,4 +1,4 @@
-import uasyncio as asyncio
+
 import json
 
 class LogSender:

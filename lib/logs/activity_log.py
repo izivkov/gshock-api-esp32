@@ -1,4 +1,4 @@
-import json
+
 from time import localtime
 
 class LogMessage:
