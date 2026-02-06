@@ -41,6 +41,7 @@ Works with many **G-Shock**, **Edifice**, and **Pro Trek** variants. Here are th
 | GMW-B5000          | 3459, 3461           |
 | GW-5000            | 3159, 3495           |
 | GA-B2100           | 5689                 |
+| GA-B010            | 5736                 |
 | GST-B500           | 5684                 |
 | GST-B200           | 5608                 |
 | MSG-B100           | 5659                 |
