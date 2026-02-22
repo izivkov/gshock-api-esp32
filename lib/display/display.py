@@ -1,6 +1,7 @@
 from machine import Pin, SPI, PWM
 import display.st7789_ext_small as st7789
 import gc
+import utime
 
 # Basic 8x8 font class for text rendering
 class Font8x8:
@@ -92,6 +93,10 @@ class Display:
 
         self.width = self.tft.width
         self.height = self.tft.height
+
+        self._clock_x = None      # x position of the time on the current screen
+        self._clock_y = None      # y position of the time on the current screen
+        self._clock_active = False  # True when a live clock line is displayed
 
         # Fill display with background color
         self.tft.fill(self.bg)
@@ -213,36 +218,104 @@ class Display:
         finally:
             gc.collect()
 
-    def show_welcome_screen(self, message, watch_name=None, last_sync=None):
+    def show_welcome_screen(self, message, watches=None, timezone=None, version=None, project_name=None):
         """
-        Display welcome/status screen with watch name, last sync, and message.
+        Display welcome/status screen.
+        - No watches yet: message split across two 2x lines, timezone on a third line, all centered.
+          Version shown 1x right-aligned on the first line.
+        - Watches present: compact 1x list with message header and version right-aligned.
         """
         try:
-            margin_bottom = 80
-            line_spacing = 4
-            lines = []
-            lines.append((f"{watch_name}", 2))
-            lines.append(("", 1))
-            lines.append(("Last Synced:", 2))
-            lines.append((last_sync, 2))
-            lines.append(("", 1))
-            lines.append((message, 1))
-            line_heights = [font_small.HEIGHT * scale for _, scale in lines]
-            total_text_height = sum(line_heights) + line_spacing * (len(lines) - 1)
-            start_y = self.height - total_text_height - margin_bottom
             self.tft.fill(self.bg)
-            y = start_y
-            for i, (text, scale) in enumerate(lines):
-                text_w = len(text) * font_small.WIDTH * scale
-                x = (self.width - text_w) // 2
-                if scale > 1:
-                    # Upscaled text for emphasis
-                    self.tft.upscaled_text(x, y, text, self.fg, bgcolor=None, upscaling=2)
-                else:
-                    self.tft.text(x, y, text, self.fg, self.bg)
-                y += font_small.HEIGHT * scale + line_spacing
+            line_h = font_small.HEIGHT + 4  # 12px per row
+
+            if not watches:
+                # Split message at last space before midpoint
+                mid = len(message) // 2
+                split = message.rfind(" ", 0, mid + 1)
+                if split == -1:
+                    split = message.find(" ", mid)
+                line1 = message[:split] if split != -1 else message
+                line2 = message[split + 1:] if split != -1 else ""
+
+                t = utime.localtime()
+                time_str = "{:02}:{:02}".format(t[3], t[4])
+
+                small_h = font_small.HEIGHT + 6
+                row_h = font_small.HEIGHT * 2 + 6
+                block_h = small_h + row_h * 2 + (small_h if timezone else 0) + (small_h if version else 0)
+                y = (self.height - block_h) // 2
+
+                # Current time — store position for live updates
+                self._clock_x = (self.width - len(time_str) * font_small.WIDTH) // 2
+                self._clock_y = y
+                self._clock_active = True
+                self.tft.text(self._clock_x, y, time_str, self.fg, self.bg)
+                y += small_h
+
+                for line in (line1, line2):
+                    x = (self.width - len(line) * font_small.WIDTH * 2) // 2
+                    self.tft.upscaled_text(x, y, line, self.fg, bgcolor=None, upscaling=2)
+                    y += row_h
+
+                if timezone:
+                    x = (self.width - len(timezone) * font_small.WIDTH) // 2
+                    self.tft.text(x, y, timezone, self.fg, self.bg)
+                    y += small_h
+
+                if version:
+                    ver_str = "v{}".format(version)
+                    x = (self.width - len(ver_str) * font_small.WIDTH) // 2
+                    self.tft.text(x, y, ver_str, self.fg, self.bg)
+            else:
+                y = 40
+                # Line 1: project name (left) | time (centre-right) | version (right)
+                t = utime.localtime()
+                time_str = "{:02}:{:02}".format(t[3], t[4])
+                ver_str = "v{}".format(version) if version else ""
+                ver_x = self.width - 10 - len(ver_str) * font_small.WIDTH
+                time_x = ver_x - (len(time_str) + 1) * font_small.WIDTH
+                self._clock_x = time_x
+                self._clock_y = y
+                self._clock_active = True
+                if project_name:
+                    self.tft.text(10, y, project_name, self.fg, self.bg)
+                self.tft.text(time_x, y, time_str, self.fg, self.bg)
+                if ver_str:
+                    self.tft.text(ver_x, y, ver_str, self.fg, self.bg)
+                y += line_h
+
+                # Message on second line, centered
+                msg_w = len(message) * font_small.WIDTH
+                x = (self.width - msg_w) // 2
+                self.tft.text(x, y, message, self.fg, self.bg)
+                y += line_h + 2
+
+                # Separator line
+                self.fill_rect_manual(10, y, self.width - 20, 1, self.fg)
+                y += 6
+
+                # Watch list — most recent entries if too many to fit
+                max_rows = (self.height - 20 - y) // line_h
+                watch_items = list(watches.items())
+                if len(watch_items) > max_rows:
+                    watch_items = watch_items[-max_rows:]
+
+                for name, sync_time in watch_items:
+                    self.tft.text(10, y, name, self.fg, self.bg)
+                    time_w = len(sync_time) * font_small.WIDTH
+                    self.tft.text(self.width - 10 - time_w, y, sync_time, self.fg, self.bg)
+                    y += line_h
         finally:
             gc.collect()
+
+    def update_clock(self):
+        """Redraw only the time at its stored position. No-op on any other screen."""
+        if not self._clock_active or self._clock_y is None or self._clock_x is None:
+            return
+        t = utime.localtime()
+        time_str = "{:02}:{:02}".format(t[3], t[4])
+        self.tft.text(self._clock_x, self._clock_y, time_str, self.fg, self.bg)
 
     def show_message(self, message, max_line_len=20, bottom_margin=20):
         """

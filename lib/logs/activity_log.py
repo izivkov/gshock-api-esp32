@@ -1,5 +1,8 @@
-
+import json
+import os
 from time import localtime
+
+LOG_FILE = "activity_log.json"
 
 class LogMessage:
     def __init__(self, datetime, activity_name, status_code, watch_name, message):
@@ -19,10 +22,37 @@ class LogMessage:
         }
 
 class ActivityLog:
-    def __init__(self, max_size=10):
-        self.logs = []               # FIFO queue of unsent logs
+    def __init__(self, max_size=50, filepath=LOG_FILE):
+        self.logs = []
         self.max_size = max_size
+        self.filepath = filepath
         self._on_add = None
+        self._load()
+
+    def _file_exists(self, path):
+        try:
+            os.stat(path)
+            return True
+        except OSError:
+            return False
+
+    def _load(self):
+        try:
+            if self._file_exists(self.filepath):
+                with open(self.filepath, 'r') as f:
+                    data = json.load(f)
+                self.logs = [LogMessage(**entry) for entry in data]
+                print("Loaded {} log entries from flash.".format(len(self.logs)))
+        except Exception as e:
+            print("Failed to load activity log: {}".format(e))
+            self.logs = []
+
+    def _save(self):
+        try:
+            with open(self.filepath, 'w') as f:
+                json.dump([log.to_dict() for log in self.logs], f)
+        except Exception as e:
+            print("Failed to save activity log: {}".format(e))
 
     def set_on_add(self, callback):
         """Register callback (e.g. BLE sender)."""
@@ -36,16 +66,16 @@ class ActivityLog:
         log_message = LogMessage(datetime, activity_name, status_code, watch_name, message)
         self.logs.append(log_message)
 
-        # Keep logs within max_size (oldest first)
         if len(self.logs) > self.max_size:
             self.logs.pop(0)
 
-        # Trigger callback
+        self._save()
+
         if self._on_add:
             await self._on_add(log_message)
 
     def get_logs(self):
-        """Return a copy of all unsent logs (for initial sync)."""
+        """Return a copy of all logs."""
         return self.logs[:]
 
     def pop_log(self):
@@ -55,7 +85,8 @@ class ActivityLog:
         return None
 
     def clear_logs(self):
-        """Clear all logs (used if BLE client requests wipe)."""
+        """Clear all logs."""
         self.logs.clear()
+        self._save()
 
-activity_log = ActivityLog(max_size=10)
+activity_log = ActivityLog()

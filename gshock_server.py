@@ -21,6 +21,8 @@ __author__ = "Ivo Zivkov"
 __copyright__ = "Ivo Zivkov"
 __license__ = "MIT"
 
+from version import __version__, __project__
+
 async def main():     
     try:
         await gshock_server()
@@ -38,9 +40,15 @@ def prompt():
     logger.info("==============================================================================================")
     logger.info("")
 
+async def clock_updater():
+    while True:
+        await asyncio.sleep(30)
+        display.update_clock()
+
 async def gshock_server():
-    
+
     prompt()
+    asyncio.create_task(clock_updater())
 
     while True:
         watch_name = "Unknown"
@@ -50,8 +58,10 @@ async def gshock_server():
                 "show_welcome_screen",
                 display.show_welcome_screen,
                 "Waiting for connection...",
-                watch_name=store.get("watch_name", None),
-                last_sync=store.get("last_connected", "Unknown"),
+                watches=store.get("watches", {}),
+                timezone=config_manager.get("timezone", ""),
+                version=__version__,
+                project_name=__project__,
             )
 
             logger.info("Waiting for connection...")
@@ -81,15 +91,16 @@ async def gshock_server():
             formatted_time = f'{utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}'
 
             watch_name = watch_info.shortName.strip('\u0000 \t\n\r')
-            store.add("last_connected", formatted_time)
-            store.add("watch_name", watch_name)
+            watches = store.get("watches", {})
+            watches[watch_name] = formatted_time
+            store.add("watches", watches)
 
             gc.collect()
             api = GshockAPI(connection)
             pressed_button = await api.get_pressed_button()
 
-            # Apply fine adjustment to the time
-            fine_adjustment_secs = 0
+            # Apply fine adjustment to compensate for ESP32 lag
+            fine_adjustment_secs = config_manager.get("offset", 0)
             await api.set_time(offset=fine_adjustment_secs)
             logger.info(f"Time set at {utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}")
             set_mode = "AUTO" if pressed_button is WatchButton.NO_BUTTON else "MANUAL" if pressed_button == WatchButton.LOWER_RIGHT else "MANUAL WITH DISPLAY"
@@ -97,10 +108,12 @@ async def gshock_server():
 
             if pressed_button == WatchButton.LOWER_LEFT:
                 await show_display(api)
-            else:
-                display.show_welcome_screen("Waiting for connection...",
-                                            watch_name=watch_name,
-                                            last_sync=formatted_time)
+
+            display.show_welcome_screen("Waiting for connection...",
+                                        watches=store.get("watches", {}),
+                                        timezone=config_manager.get("timezone", ""),
+                                        version=__version__,
+                                        project_name=__project__)
 
             await connection.disconnect()
             connection = None

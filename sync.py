@@ -10,6 +10,9 @@ ESP_ROOT = Path("/")       # ESP32 root
 IGNORE = {".git", ".vscode", "__pycache__", ".DS_Store"}
 EXTENSIONS = {".py", ".mpy", ".json"}  # only copy these files
 
+# Runtime files generated on the device — never delete during sync
+DEVICE_ONLY_FILES = {"gshock_server_data.json", "activity_log.json"}
+
 subprocess.run(["mpremote", "fs", "mkdir", "lib"])
 
 # ---------------- Helper Functions ----------------
@@ -64,6 +67,9 @@ def delete_extra_files(local_files, esp_files):
         if f_norm.endswith("/"):
             continue
         if f_norm not in local_set:
+            if Path(f_norm).name in DEVICE_ONLY_FILES:
+                print(f"Keeping device-only file: {f_norm}")
+                continue
             print(f"Deleting extra file on ESP32: {f_norm}")
             subprocess.run(["mpremote", "fs", "rm", f_norm])
 
