@@ -86,8 +86,19 @@ def set_server_time():
         timezone = config_manager.get("timezone", "UTC")
 
         time_set = network_time_setter.set_time(ssid, password, timezone)
+
         if not time_set:
-            display.show_message (f"""Failed to set time using WiFi "{ssid}". Please check config and connection.""")
+            ssid_alt = config_manager.get("ssid_alternate")
+            password_alt = config_manager.get("password_alternate")
+            if ssid_alt and password_alt:
+                logger.info(f"Primary WiFi \"{ssid}\" failed, trying alternate \"{ssid_alt}\"...")
+                try:
+                    time_set = network_time_setter.set_time(ssid_alt, password_alt, timezone)
+                except Exception:
+                    time_set = False
+
+        if not time_set:
+            display.show_message(f"""Failed to set time using WiFi "{ssid}". Please check config and connection.""")
             logger.error(f"gshock_server: Failed to set time using WiFi \"{ssid}\". Please check config and connection.")
             return False
         else:
@@ -95,7 +106,7 @@ def set_server_time():
 
     except Exception:
         return False
-    
+
     finally:
         network_time_setter.cleanup()
 

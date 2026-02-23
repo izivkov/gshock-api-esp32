@@ -64,11 +64,13 @@ class Connection:
                         
                         if _is_target_device(adv):
                             name = adv.name()
+                            addr_str = _format_addr(adv.device.addr)
                             print(
                                 "Found device:", name,
-                                "at", _format_addr(adv.device.addr)
+                                "at", addr_str
                             )
                             watch_info.set_name_and_model(name)
+                            watch_info.set_address(addr_str)
                             found = adv.device
                             break
                 if not found:

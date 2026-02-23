@@ -295,13 +295,18 @@ class Display:
                 self.fill_rect_manual(10, y, self.width - 20, 1, self.fg)
                 y += 6
 
-                # Watch list — most recent entries if too many to fit
+                # Watch list — sorted by most recent sync, trimmed to fit
                 max_rows = (self.height - 20 - y) // line_h
-                watch_items = list(watches.items())
+                watch_items = sorted(
+                    watches.items(),
+                    key=lambda item: item[1].get("ts", 0) if isinstance(item[1], dict) else 0,
+                    reverse=True
+                )
                 if len(watch_items) > max_rows:
-                    watch_items = watch_items[-max_rows:]
+                    watch_items = watch_items[:max_rows]
 
-                for name, sync_time in watch_items:
+                for name, val in watch_items:
+                    sync_time = val["t"] if isinstance(val, dict) else val
                     self.tft.text(10, y, name, self.fg, self.bg)
                     time_w = len(sync_time) * font_small.WIDTH
                     self.tft.text(self.width - 10 - time_w, y, sync_time, self.fg, self.bg)

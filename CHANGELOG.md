@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0] - 2026-02-22
+
+### Added
+- Alternate WiFi support (`ssid_alternate` / `password_alternate` in `config.json`): if NTP sync fails on the primary network, the server automatically retries on the fallback network
+- Syncing screen: when a watch connects, the display now shows the watch model, short BLE ID, current time and "Syncing..." status before the time is set
+- Watch list sorted by most recent sync (most recent at top)
+- Watch entries in the history list now include a short BLE address suffix (`GA-B2100 - #1A2B`) to distinguish multiple physical watches of the same model
+- `config.json_template` added to repository as a starting point for configuration
+- README documents all `config.json` fields including `offset`, `ssid_alternate`, `password_alternate`, and how to clear the sync log manually via `mpremote`
+
+---
+
 ## [1.1.0] - 2026-02-22
 
 ### Added

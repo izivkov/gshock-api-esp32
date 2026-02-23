@@ -139,15 +139,34 @@ The server needs an internet connection to get the correct time. You must theref
 
 #### Method 1: Manual Installation
 
-Create a `config.json` file with your WiFi credentials and timezone:
-```
+A `config.json_template` file is provided in the repository. Copy it, rename it to `config.json`, and fill in your values:
+
+```json
 {
   "ssid": "YourWiFiSSID",
   "password": "YourWiFiPassword",
-  "timezone": "Continent/City"
+  "ssid_alternate": "",
+  "password_alternate": "",
+  "timezone": "Continent/City",
+  "offset": 0
 }
 ```
-Make sure your timezone is in the correct format. Here is a [link to all valid timezones](http://worldtimeapi.org/api/timezone)
+
+**Configuration fields:**
+
+| Key | Required | Description |
+|-----|----------|-------------|
+| `ssid` | Yes | Your primary WiFi network name |
+| `password` | Yes | Your primary WiFi password |
+| `ssid_alternate` | No | Fallback WiFi network name. If NTP sync fails on the primary network, the server will automatically try this one |
+| `password_alternate` | No | Password for the fallback WiFi network |
+| `timezone` | Yes | Your timezone in `Continent/City` format. See [valid timezones](http://worldtimeapi.org/api/timezone) |
+| `offset` | No | Fine adjustment in seconds applied when setting the watch time, to compensate for ESP32 processing lag (default: `0`) |
+| `dateformat` | No | Date display format: `MM/DD` (default) or `DD/MM` |
+| `timeformat` | No | Time display format: `24H` (default) or `12H` |
+| `temperature_unit` | No | `C` (default) or `F` |
+| `foreground_color` | No | Display foreground color as a decimal RGB value |
+| `background_color` | No | Display background color as a decimal RGB value |
 
 Copy the file to the device:
 ```
@@ -193,6 +212,20 @@ You can examine the activities on your device by using the same Android app you 
 <img src="docs/TimeServerLogs.png" alt="Alt Image" width="200">
 
 Note that only the last 10 entries are kept. Also, the log will reset if the device is reset or umplugged.
+
+#### Clearing the log manually
+
+To clear the sync log from your PC while the ESP32 is connected via USB:
+
+```bash
+mpremote connect /dev/ttyACM0 exec "from lib.logs.activity_log import activity_log; activity_log.clear_logs()"
+```
+
+To also reset the list of previously connected watches:
+
+```bash
+mpremote connect /dev/ttyACM0 exec "from lib.utils.persistent_store import store; store.clear()"
+```
 
 ### Updating the software
 

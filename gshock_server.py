@@ -91,9 +91,19 @@ async def gshock_server():
             formatted_time = f'{utils.format_month_day(t, order=date_fmt)} {utils.format_time(t, timeformat=time_fmt)}'
 
             watch_name = watch_info.shortName.strip('\u0000 \t\n\r')
+            address = watch_info.get_address()
+            short_id = address.replace(':', '')[-4:] if address else ""
+            watch_key = f"{watch_name} - #{short_id}" if short_id else watch_name
             watches = store.get("watches", {})
-            watches[watch_name] = formatted_time
+            watches[watch_key] = {"t": formatted_time, "ts": time.mktime(t)}
             store.add("watches", watches)
+
+            display.display_data([
+                ("", watch_name),
+                ("ID:", f"#{short_id}" if short_id else ""),
+                ("Time:", formatted_time),
+                ("Status:", "Syncing..."),
+            ])
 
             gc.collect()
             api = GshockAPI(connection)
