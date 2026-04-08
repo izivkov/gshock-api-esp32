@@ -117,7 +117,9 @@ async def gshock_server():
             await activity_log.add_log(activity_name="Setting Time", status_code="TIME_SET", watch_name=watch_name, message=f"Time set in <b>{set_mode}</b> mode")
 
             if pressed_button == WatchButton.LOWER_LEFT:
+                print("Lower-left button pressed - showing display...")
                 await show_display(api)
+                await asyncio.sleep_ms(5000)
 
             display.show_welcome_screen("Waiting for connection...",
                                         watches=store.get("watches", {}),

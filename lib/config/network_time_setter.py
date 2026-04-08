@@ -61,6 +61,8 @@ class NetworkTimeSetter:
         raise Exception("Failed to get timezone offset from both sources")
 
     def set_time(self, ssid, password, timezone) -> bool:
+        print("Starting network time setter...")
+        
         # Connect to Wi-Fi
         self._connect_wifi(ssid, password)
 
@@ -107,6 +109,7 @@ class NetworkTimeSetter:
     def is_NTP_set(self):
         rtc = machine.RTC()
         year = rtc.datetime()[0]
+        print(f"RTC year: {year}, Timezone set: {self.timezone_set}")
         return year >= 2025 and self.timezone_set
 
     def cleanup(self):

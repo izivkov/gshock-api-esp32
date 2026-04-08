@@ -80,10 +80,12 @@ async def start_time_setter():
     time.sleep(2)
 
 def set_server_time():
+    print("Setting server time...")
     try:
         ssid = config_manager.get("ssid")
         password = config_manager.get("password")
         timezone = config_manager.get("timezone", "UTC")
+        print(f"Config SSID: {ssid}, Timezone: {timezone}")
 
         time_set = network_time_setter.set_time(ssid, password, timezone)
 
