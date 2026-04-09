@@ -22,7 +22,7 @@ class LogMessage:
         }
 
 class ActivityLog:
-    def __init__(self, max_size=50, filepath=LOG_FILE):
+    def __init__(self, max_size=20, filepath=LOG_FILE):
         self.logs = []
         self.max_size = max_size
         self.filepath = filepath

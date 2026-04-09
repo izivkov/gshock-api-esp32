@@ -1,4 +1,5 @@
 
+import asyncio
 import json
 
 class LogSender:
@@ -34,6 +35,10 @@ class LogSender:
                 chunk = log_data[i:i + chunk_size]
                 await self.send_notify_safe(self.connection, chunk)
 
+                # 2. Vital: Yield control to the scheduler to allow the 
+                # BLE stack to clear its buffers.
+                await asyncio.sleep_ms(15)
+            
             print("✅ Finished sending one log.")
 
         except Exception as e:
